@@ -1172,8 +1172,6 @@ def versions_from_file(filename):
         print("Trying to read: %s" % (filename))
         with open(filename) as f:
           print("Content:\n%s" % f.read())
-          import sys
-          sys.exit(1)
 
         with open(filename) as f:
             for line in f.readlines():
@@ -1183,6 +1181,8 @@ def versions_from_file(filename):
                 mo = re.match("version_full = '([^']+)'", line)
                 if mo:
                     versions["full"] = mo.group(1)
+
+        print("Recovered version info:\n%s" % (versions,))
     except EnvironmentError:
         return {}
 
