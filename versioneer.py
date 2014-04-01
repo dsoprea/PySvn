@@ -84,8 +84,7 @@ First, decide on values for the following configuration variables:
 
 * `VCS`: 
 
-  The version control system you use. Optional. Will simply be detected if not 
-  specified. Currently accepts "git" or "svn".
+  The version control system you use.
 
 * `versionfile_source`:
 
@@ -132,6 +131,7 @@ To versioneer-enable your project:
 
         import versioneer
 
+        versioneer.VCS = 'git'
         versioneer.versionfile_source = 'src/myproject/_version.py'
         versioneer.versionfile_build = 'myproject/_version.py'
         versioneer.tag_prefix = '' # tags are like 1.2.0
@@ -263,6 +263,7 @@ from distutils.command.build import build as _build
 
 # these configuration settings will be overridden by setup.py after it
 # imports us
+VCS = None
 versionfile_source = None
 versionfile_build = None
 tag_prefix = None
@@ -273,27 +274,6 @@ vcs_settings = {}
 # these dictionaries contain VCS-specific tools
 LONG_VERSION_PY = {}
 
-def git_is_found():
-    root = path.dirname(__file__)
-    return path.isdir(path.join(root, '.git'))
-
-def svn_is_found():
-    root = path.dirname(__file__)
-    return path.isdir(path.join(root, '.svn'))
-
-SUPPORTED_REPOS = ["git", "svn"]
-
-def _derive_vcs():
-    for vcs in SUPPORTED_REPOS:
-        func_name = vcs + '_is_found'
-        is_found_f = getattr(sys.modules[__name__], func_name)
-        if is_found_f() is True:
-            print("Detected VCS: %s" % (vcs))
-            return vcs
-
-    raise SystemError("Could not identify VCS.")
-
-VCS = _derive_vcs()
 
 import subprocess
 import sys
