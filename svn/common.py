@@ -54,6 +54,7 @@ class CommonClient(object):
         return d
 
     def info(self):
+# TODO(dustin): Start using XML.
         info_rows = self.run_command('info', [self.__url_or_path])
         return self.rows_to_dict(info_rows)
 
