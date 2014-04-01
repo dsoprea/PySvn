@@ -1263,6 +1263,8 @@ def get_versions(default=DEFAULT, verbose=False):
     return default
 
 def get_version(verbose=False):
+    print("Version parts: %s" % (get_versions(verbose=verbose),))
+
     return version_string_template % get_versions(verbose=verbose)
 def get_vcs_code():
     assert VCS is not None, "please set versioneer.VCS"

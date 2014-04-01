@@ -7,6 +7,7 @@ versioneer.versionfile_source = 'svn/_version.py'
 versioneer.versionfile_build = 'svn/_version.py'
 versioneer.tag_prefix = ''
 versioneer.parentdir_prefix = 'svn-'
+#versioneer.version_string_template = "%(tag)s"
 
 setup(name='svn',
       version=versioneer.get_version(),
