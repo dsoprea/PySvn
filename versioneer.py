@@ -1169,10 +1169,6 @@ def versions_from_file(filename):
 
     versions = {}
     try:
-        print("Trying to read: %s" % (filename))
-        with open(filename) as f:
-          print("Content:\n%s" % f.read())
-
         with open(filename) as f:
             for line in f.readlines():
                 mo = re.match("version_version = '([^']+)'", line)
@@ -1181,8 +1177,6 @@ def versions_from_file(filename):
                 mo = re.match("version_full = '([^']+)'", line)
                 if mo:
                     versions["full"] = mo.group(1)
-
-        print("Recovered version info:\n%s" % (versions,))
     except EnvironmentError:
         return {}
 
@@ -1233,8 +1227,6 @@ def get_versions(default=DEFAULT, verbose=False):
 
     # Try to get the version info from the VCS-specific replacement keywords.
 
-    verbose = True
-
     get_keywords_f = vcs_function(VCS, "get_keywords")
     versions_from_keywords_f = vcs_function(VCS, "versions_from_keywords")
     if get_keywords_f and versions_from_keywords_f:
@@ -1271,8 +1263,6 @@ def get_versions(default=DEFAULT, verbose=False):
     return default
 
 def get_version(verbose=False):
-    print("Version parts: %s" % (get_versions(verbose=verbose),))
-
     return version_string_template % get_versions(verbose=verbose)
 def get_vcs_code():
     assert VCS is not None, "please set versioneer.VCS"
