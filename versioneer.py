@@ -1169,6 +1169,12 @@ def versions_from_file(filename):
 
     versions = {}
     try:
+        print("Trying to read: %s" % (filename))
+        with open(filename) as f:
+          print("Content:\n%s" % f.read())
+          import sys
+          sys.exit(1)
+
         with open(filename) as f:
             for line in f.readlines():
                 mo = re.match("version_version = '([^']+)'", line)
@@ -1226,6 +1232,8 @@ def get_versions(default=DEFAULT, verbose=False):
     # download-from-tag feature or the equivalent in other VCSes.
 
     # Try to get the version info from the VCS-specific replacement keywords.
+
+    verbose = True
 
     get_keywords_f = vcs_function(VCS, "get_keywords")
     versions_from_keywords_f = vcs_function(VCS, "versions_from_keywords")
