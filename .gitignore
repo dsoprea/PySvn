@@ -1,0 +1,6 @@
+/bin/
+/lib/
+/include/
+/.Python
+/local/
+/svn.egg-info/
