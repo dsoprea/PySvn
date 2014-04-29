@@ -25,24 +25,36 @@ import pprint
 r = svn.LocalClient('/home/dustin/dev/repo')
 r.export('/tmp/export')
 
-pprint.pprint(r.info())
+i = r.info()
+
+print(i.attrib['kind'])
+print(i.attrib['path'])
+print(i.attrib['revision'])
+
+print(i.find('url').text)
+print(i.find('relative-url').text)
+
+repo = i.find('repository')
+print(repo.find('root').text)
+print(repo.find('uuid').text)
+
+commit = i.find('commit')
+print(commit.find('author').text)
+print(commit.find('date').text)
 ```
 
 Output:
 
 ```
-{u'last changed author': u'dustin',
- u'last changed date': u'2014-03-28 13:49:33 -0400 (Fri, 28 Mar 2014)',
- u'last changed rev': u'1910',
- u'node kind': u'directory',
- u'path': u'/home/dustin/dev/repo',
- u'relative url': u'^/svn',
- u'repository root': u'https://repo.local',
- u'repository uuid': u'7661bf0e-5f5b-4f8e-ab15-2494a5b67ce4',
- u'revision': u'1910',
- u'schedule': u'normal',
- u'url': u'https://repo.local/svn',
- u'working copy root path': u'/home/dustin/dev/repo'}
+dir
+/Users/dustin/development/php/adam2
+2030
+https://opsvn.openpeak.com/svn/adam2/trunk
+^/trunk
+https://opsvn.openpeak.com/svn/adam2
+7661bf0e-5f5b-4f8e-ab15-2494a5b67ce4
+dustin
+2014-04-03T13:58:08.396645Z
 ```
 
 ### RemoteClient
