@@ -64,6 +64,7 @@ class CommonClient(object):
         self.run_command('export', [self.__url_or_path, path])
 
     def cat(self, rel_filepath):
+# TODO(dustin): Verify that this handles binaries well.
         return self.run_command('cat', [self.__url_or_path + '/' + rel_filepath])
 
     @property
