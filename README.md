@@ -66,3 +66,4 @@ These methods are available on both clients.
 
 - info()
 - export(path)
+- cat(rel_filepath)

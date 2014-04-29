@@ -8,10 +8,14 @@ import svn
 #r = svn.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
 r = svn.LocalClient('/Users/dustin/development/php/adam2')
 
-#print(r)
+print(r.cat('sfs/package/DEBIAN/postinst'))
 
-import pprint
-pprint.pprint(r.info())
+sys.exit(0)
+
+print(r.info())
+
+#import pprint
+#pprint.pprint(r.info())
 
 #r.checkout('/tmp/checkout_2')
 #r.export('/tmp/export_1')

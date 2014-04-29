@@ -1,6 +1,8 @@
 import subprocess
 import logging
 
+from xml.etree import ElementTree
+
 import svn
 
 _logger = logging.getLogger('svn')
@@ -54,12 +56,57 @@ class CommonClient(object):
         return d
 
     def info(self):
-# TODO(dustin): Start using XML.
-        info_rows = self.run_command('info', [self.__url_or_path])
-        return self.rows_to_dict(info_rows)
+#        result = self.run_command('info', ['--xml', self.__url_or_path], combine=True)
+        
+        result = """<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   kind="dir"
+   path="/Users/dustin/development/php/adam2"
+   revision="1910">
+<url>https://opsvn.openpeak.com/svn/adam2/trunk</url>
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>https://opsvn.openpeak.com/svn/adam2</root>
+<uuid>7661bf0e-5f5b-4f8e-ab15-2494a5b67ce4</uuid>
+</repository>
+<wc-info>
+<wcroot-abspath>/Users/dustin/development/php/adam2</wcroot-abspath>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+</wc-info>
+<commit
+   revision="1910">
+<author>dustin</author>
+<date>2014-03-28T17:49:33.057661Z</date>
+</commit>
+</entry>
+</info>
+"""
+
+        root = ElementTree.fromstring(result)
+        entry = root.find('entry')
+        print(entry.attrib['path'])
+        print(entry.attrib['revision'])
+        print(entry.find('url').text)
+        print(entry.find('relative-url').text)
+
+        repo = entry.find('repository')
+        
+#        print(entry.findall())
+        #for k, v in entry.items():
+        #    print("%s: %s" % (k, v))
+
+#        print(dir(entry))
+
+        import sys
+        sys.exit(1)
 
     def export(self, path):
         self.run_command('export', [self.__url_or_path, path])
+
+    def cat(self, rel_filepath):
+        return self.run_command('cat', [self.__url_or_path + '/' + rel_filepath])
 
     @property
     def url(self):
