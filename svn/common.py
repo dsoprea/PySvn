@@ -60,13 +60,6 @@ class CommonClient(object):
         root = ElementTree.fromstring(result)
         return root.find('entry')
 
-#        print(entry.attrib['path'])
-#        print(entry.attrib['revision'])
-#        print(entry.find('url').text)
-#        print(entry.find('relative-url').text)
-
-#        repo = entry.find('repository')
-
     def export(self, path):
         self.run_command('export', [self.__url_or_path, path])
 
