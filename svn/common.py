@@ -17,7 +17,8 @@ class CommonClient(object):
 
         self.__type = type_
 
-    def run_command(self, subcommand, args, success_code=0, return_stderr=False, combine=False):
+    def run_command(self, subcommand, args, success_code=0, 
+                    return_stderr=False, combine=False, return_binary=False):
         cmd = ['svn', subcommand] + args
 
         _logger.debug("RUN: %s" % (cmd,))
@@ -32,6 +33,9 @@ class CommonClient(object):
                              (p.returncode, cmd, stdout, stderr))
 
         s = stderr if return_stderr is True else stdout
+        if return_binary is True:
+            return s
+
         s = s.decode('ASCII')
 
         return s if combine is True else s.split("\n")
@@ -65,7 +69,7 @@ class CommonClient(object):
 
     def cat(self, rel_filepath):
 # TODO(dustin): Verify that this handles binaries well.
-        return self.run_command('cat', [self.__url_or_path + '/' + rel_filepath])
+        return self.run_command('cat', [self.__url_or_path + '/' + rel_filepath], return_binary=True)
 
     @property
     def url(self):

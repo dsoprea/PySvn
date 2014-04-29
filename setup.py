@@ -9,7 +9,7 @@ import sys, os
 #versioneer.parentdir_prefix = 'svn-'
 
 setup(name='svn',
-      version='0.3.13',#versioneer.get_version(),
+      version='0.3.14',#versioneer.get_version(),
       description="Straight-forward Subversion wrapper.",
       long_description="""""",
       classifiers=['Development Status :: 5 - Production/Stable',
@@ -25,6 +25,5 @@ setup(name='svn',
       include_package_data=True,
       zip_safe=False,
       install_requires=[],
-      entry_points="""""",
 #      cmdclass=versioneer.get_cmdclass(),
 )
