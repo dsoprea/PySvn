@@ -4,7 +4,7 @@ long_description = ""
 
 setuptools.setup(
     name='svn',
-    version='0.3.15',
+    version='0.3.16',
     description="Straight-forward Subversion wrapper.",
     long_description=long_description,
     classifiers=['Development Status :: 5 - Production/Stable',
@@ -19,5 +19,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test']),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[],
+    install_requires=[
+        'python-dateutil==2.2',
+    ],
 )
