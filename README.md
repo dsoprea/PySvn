@@ -79,3 +79,4 @@ These methods are available on both clients.
 - info()
 - export(path)
 - cat(rel_filepath)
+- log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None)
