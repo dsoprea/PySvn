@@ -1,7 +1,8 @@
 import subprocess
 import logging
-
-from xml.etree import ElementTree
+import dateutil.parser
+import collections
+import xml.etree.ElementTree
 
 import svn
 
@@ -60,8 +61,12 @@ class CommonClient(object):
         return d
 
     def info(self):
-        result = self.run_command('info', ['--xml', self.__url_or_path], combine=True)
-        root = ElementTree.fromstring(result)
+        result = self.run_command(
+                    'info', 
+                    ['--xml', self.__url_or_path], 
+                    combine=True)
+
+        root = xml.etree.ElementTree.fromstring(result)
         return root.find('entry')
 
     def export(self, path):
@@ -69,7 +74,58 @@ class CommonClient(object):
 
     def cat(self, rel_filepath):
 # TODO(dustin): Verify that this handles binaries well.
-        return self.run_command('cat', [self.__url_or_path + '/' + rel_filepath], return_binary=True)
+        return self.run_command(
+                'cat', 
+                [self.__url_or_path + '/' + rel_filepath], 
+                return_binary=True)
+
+    def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
+                    limit=None):
+        """Allow for the most-likely kind of log listing: the complete list, a 
+        FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
+        """
+
+        timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
+                                    if timestamp_from_dt \
+                                    else ''
+
+        timestamp_to_phrase = ('{' + timestamp_to_dt.isoformat() + '}') \
+                                if timestamp_to_dt \
+                                else ''
+
+        args = []
+
+        if timestamp_from_phrase or timestamp_to_phrase:
+            if not timestamp_from_phrase:
+                raise ValueError("The default log retriever can not take a TO "
+                                 "timestamp without a FROM timestamp.")
+
+            if not timestamp_to_phrase:
+                timestamp_to_phrase = 'HEAD'
+
+            args += ['-r', timestamp_from_phrase + ':' + timestamp_to_phrase]
+
+        if limit is not None:
+            args += ['-l', str(limit)]
+
+        result = self.run_command(
+                    'log', 
+                    args + ['--xml', self.__url_or_path], 
+                    combine=True)
+
+        root = xml.etree.ElementTree.fromstring(result)
+        c = collections.namedtuple(
+                'LogEntry', 
+                ['date', 'msg', 'revision', 'author'])
+        
+        for e in root.findall('logentry'):
+            entry_info = dict([(x.tag, x.text) for x in e.getchildren()])
+
+            yield c(
+                msg=entry_info['msg'],
+                author=entry_info['author'],
+                revision=int(e.get('revision')),
+                date=dateutil.parser.parse(entry_info['date']))
 
     @property
     def url(self):
