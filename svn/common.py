@@ -67,7 +67,30 @@ class CommonClient(object):
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
-        return root.find('entry')
+
+        entry_attr = root.find('entry').attrib
+        commit_attr = root.find('entry/commit').attrib
+
+        author = root.find('entry/commit/author')
+
+        info = {        
+            'entry#kind': entry_attr['kind'],
+            'entry#path': entry_attr['path'],
+            'entry#revision': int(entry_attr['revision']),
+            'url': root.find('entry/url').text,
+            'relative_url': root.find('entry/relative-url').text,
+            'repository/root': root.find('entry/repository/root').text,
+            'repository/uuid': root.find('entry/repository/uuid').text,
+            'wc-info/wcroot-abspath': root.find('entry/wc-info/wcroot-abspath').text,
+            'wc-info/schedule': root.find('entry/wc-info/schedule').text,
+            'wc-info/depth': root.find('entry/wc-info/depth').text,
+            'commit/author': author.text if author else None,
+            'commit/date': dateutil.parser.parse(
+                            root.find('entry/commit/date').text),
+            'commit#revision': int(commit_attr['revision']),
+        }
+
+        return info
 
     def export(self, path):
         self.run_command('export', [self.__url_or_path, path])

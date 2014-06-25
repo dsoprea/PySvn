@@ -1,2 +1,1 @@
-include versioneer.py
-include svn/_version.py
+include rpipe/resources/*

@@ -1,0 +1,28 @@
+DELTA
+SVNENDREP
+id: 0-1.0.r1/17
+type: file
+count: 0
+text: 1 0 4 0 d41d8cd98f00b204e9800998ecf8427e da39a3ee5e6b4b0d3255bfef95601890afd80709 0-0/_2
+cpath: /file_1
+copyroot: 0 /
+
+PLAIN
+K 6
+file_1
+V 16
+file 0-1.0.r1/17
+END
+ENDREP
+id: 0.0.r1/228
+type: dir
+pred: 0.0.r0/17
+count: 1
+text: 1 178 37 0 d840440b79c870245fe9de94ddaec7fd
+cpath: /
+copyroot: 0 /
+
+_0.0.t0-0 add-file true false /file_1
+
+
+228 352

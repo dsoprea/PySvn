@@ -18,22 +18,28 @@ ch.setFormatter(formatter)
 _logger.addHandler(ch)
 
 import svn
+import pprint
 
 #r = svn.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
-r = svn.LocalClient('/Users/dustin/development/php/adam2')
+#r = svn.LocalClient('/Users/dustin/development/php/adam2')
+r = svn.LocalClient('working_copy')
+pprint.pprint(r.info())
 
 #print(r.cat('sfs/package/DEBIAN/postinst'))
 
-import dateutil.parser
-import datetime
+#import dateutil.parser
+#import datetime
+#
+#from_ = datetime.datetime.now().replace(day=21)
+#for e in r.log_default(timestamp_from_dt=from_):
+#    print(e)
+#
+#sys.exit(0)
 
-from_ = datetime.datetime.now().replace(day=21)
-for e in r.log_default(timestamp_from_dt=from_):
-    print(e)
-
+#i = r.info()
+#print(i)
 sys.exit(0)
 
-i = r.info()
 print(i.attrib['kind'])
 print(i.attrib['path'])
 print(i.attrib['revision'])

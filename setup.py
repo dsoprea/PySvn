@@ -1,16 +1,22 @@
+import os.path
 import setuptools
 
-long_description = ""
+import svn
+
+app_path = os.path.dirname(svn.__file__)
+
+with open(os.path.join(app_path, 'resources', 'README.rst')) as f:
+      long_description = ''.join(f.readlines())
+
+with open(os.path.join(app_path, 'resources', 'requirements.txt')) as f:
+      install_requires = ''.join(f.readlines())
 
 setuptools.setup(
     name='svn',
-    version='0.3.16',
-    description="Straight-forward Subversion wrapper.",
+    version=svn.__version__,
+    description="Intuitive Subversion wrapper.",
     long_description=long_description,
-    classifiers=['Development Status :: 5 - Production/Stable',
-                 'Programming Language :: Python :: 2.7',
-                 'Programming Language :: Python :: 3.3',
-                 'Topic :: Software Development :: Version Control'],
+    classifiers=[],
     keywords='svn subversion',
     author='Dustin Oprea',
     author_email='myselfasunder@gmail.com',
@@ -19,7 +25,9 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test']),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'python-dateutil==2.2',
-    ],
+    package_data={
+        'svn': ['resources/README.rst',
+                'resources/requirements.txt'],
+    },
+    install_requires=install_requires,
 )
