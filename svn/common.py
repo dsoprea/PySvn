@@ -72,6 +72,9 @@ class CommonClient(object):
         commit_attr = root.find('entry/commit').attrib
 
         author = root.find('entry/commit/author')
+        wcroot_abspath = root.find('entry/wc-info/wcroot-abspath')
+        wcinfo_schedule = root.find('entry/wc-info/schedule')
+        wcinfo_depth = root.find('entry/wc-info/depth')
 
         info = {        
             'entry#kind': entry_attr['kind'],
@@ -81,9 +84,13 @@ class CommonClient(object):
             'relative_url': root.find('entry/relative-url').text,
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
-            'wc-info/wcroot-abspath': root.find('entry/wc-info/wcroot-abspath').text,
-            'wc-info/schedule': root.find('entry/wc-info/schedule').text,
-            'wc-info/depth': root.find('entry/wc-info/depth').text,
+            'wc-info/wcroot-abspath': wcroot_abspath.text \
+                                        if wcroot_abspath \
+                                        else None,
+            'wc-info/schedule': wcinfo_schedule.text \
+                                    if wcinfo_schedule \
+                                    else None,
+            'wc-info/depth': wcinfo_depth.text if wcinfo_depth else None,
             'commit/author': author.text if author else None,
             'commit/date': dateutil.parser.parse(
                             root.find('entry/commit/date').text),
