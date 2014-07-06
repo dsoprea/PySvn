@@ -17,12 +17,13 @@ formatter = logging.Formatter(FMT)
 ch.setFormatter(formatter)
 _logger.addHandler(ch)
 
-import svn
+import svn.local
+import svn.remote
 import pprint
 
-#r = svn.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
-#r = svn.LocalClient('/Users/dustin/development/php/adam2')
-r = svn.LocalClient('working_copy')
+#r = svn.remote.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
+#r = svn.local.LocalClient('/Users/dustin/development/php/adam2')
+r = svn.local.LocalClient('working_copy')
 pprint.pprint(r.info())
 
 #print(r.cat('sfs/package/DEBIAN/postinst'))
@@ -64,4 +65,4 @@ print(commit.find('date').text)
 #r.checkout('/tmp/checkout_2')
 #r.export('/tmp/export_1')
 
-#l = svn.LocalClient('/Users/dustin/development/php/adam2')
+#l = svn.local.LocalClient('/Users/dustin/development/php/adam2')

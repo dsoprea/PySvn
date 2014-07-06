@@ -31,10 +31,10 @@ LocalClient
 
 Example *LocalClient* usage::
 
-    import svn
+    import svn.local
     import pprint
 
-    r = svn.LocalClient('/dev/repo')
+    r = svn.local.LocalClient('/dev/repo')
     r.export('/tmp/export')
 
     pprint.pprint(r.info())
@@ -65,9 +65,9 @@ RemoteClient
 
 Example *RemoteClient* usage::
 
-    import svn
+    import svn.remote
 
-    r = svn.RemoteClient('https://repo.local/svn')
+    r = svn.remote.RemoteClient('https://repo.local/svn')
     r.checkout('/tmp/working')
 
 
@@ -80,3 +80,21 @@ These methods are available on both clients.
 - export(path)
 - cat(rel_filepath)
 - log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None)
+
+
+Important
+=========
+
+Previously, the *LocalClient* and *RemoteClient* classes were exposed at the 
+package level:
+
+- svn.LocalClient
+- svn.RemoteClient
+
+Unfortunately, this interfered with dependency management during installation.
+The imports will now have to be, respectively:
+
+- svn.local (for LocalClient)
+- svn.remote (for RemoteClient)
+
+We're sorry for the inconvenience.

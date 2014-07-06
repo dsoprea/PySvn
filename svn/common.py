@@ -85,13 +85,21 @@ class CommonClient(object):
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
             'wc-info/wcroot-abspath': wcroot_abspath.text \
-                                        if wcroot_abspath \
+                                        if wcroot_abspath is not None and \
+                                           len(wcroot_abspath) \
                                         else None,
             'wc-info/schedule': wcinfo_schedule.text \
-                                    if wcinfo_schedule \
+                                    if wcinfo_schedule is not None and \
+                                       len(wcinfo_schedule) \
                                     else None,
-            'wc-info/depth': wcinfo_depth.text if wcinfo_depth else None,
-            'commit/author': author.text if author else None,
+            'wc-info/depth': wcinfo_depth.text \
+                                    if wcinfo_depth is not None and \
+                                       len(wcinfo_depth) \
+                                    else None,
+            'commit/author': author.text \
+                                    if author is not None and \
+                                       len(author) \
+                                    else None,
             'commit/date': dateutil.parser.parse(
                             root.find('entry/commit/date').text),
             'commit#revision': int(commit_attr['revision']),
