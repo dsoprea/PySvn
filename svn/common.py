@@ -105,6 +105,22 @@ class CommonClient(object):
             'commit#revision': int(commit_attr['revision']),
         }
 
+        # Set some more intuitive keys, because no one likes dealing with 
+        # symbols. However, we retain the old ones to maintain backwards-
+        # compatibility.
+
+        info['entry_kind'] = info['entry#kind']
+        info['entry_path'] = info['entry#path']
+        info['entry_revision'] = info['entry#revision']
+        info['repository_root'] = info['repository/root']
+        info['repository_uuid'] = info['repository/uuid']
+        info['wcinfo_wcroot_abspath'] = info['wc-info/wcroot-abspath']
+        info['wcinfo_schedule'] = info['wc-info/schedule']
+        info['wcinfo_depth'] = info['wc-info/depth']
+        info['commit_author'] = info['commit/author']
+        info['commit_date'] = info['commit/date']
+        info['commit_revision'] = info['commit#revision']
+
         return info
 
     def export(self, path):
