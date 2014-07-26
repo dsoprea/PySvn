@@ -41,19 +41,30 @@ Example *LocalClient* usage::
 
 Output::
 
-    {'commit#revision': 0,
-     'commit/author': None,
-     'commit/date': datetime.datetime(2014, 4, 1, 5, 50, 27, 826988, tzinfo=tzutc()),
-     'entry#kind': 'dir',
-     'entry#path': 'working_copy',
-     'entry#revision': 0,
-     'relative_url': '^/',
-     'repository/root': 'file:///svn/test/repo',
-     'repository/uuid': '48195b71-8d94-4528-a019-ec81ebc7e65a',
-     'url': 'file:///svn/test/repo',
-     'wc-info/depth': 'infinity',
-     'wc-info/schedule': 'normal',
-     'wc-info/wcroot-abspath': '/svn/dev/working_copy'}
+    { 'commit#revision': 0,
+      'commit/author': None,
+      'commit/date': datetime.datetime(2014, 4, 1, 5, 50, 27, 826988, tzinfo=tzutc()),
+      'commit_author': None,
+      'commit_date': datetime.datetime(2014, 4, 1, 5, 50, 27, 826988, tzinfo=tzutc()),
+      'commit_revision': 0,
+      'entry#kind': 'dir',
+      'entry#path': 'working_copy',
+      'entry#revision': 0,
+      'entry_kind': 'dir',
+      'entry_path': 'working_copy',
+      'entry_revision': 0,
+      'relative_url': '^/',
+      'repository/root': 'file:///Users/dustin/development/python/svn/test/repo',
+      'repository/uuid': '48195b71-8d94-4528-a019-ec81ebc7e65a',
+      'repository_root': 'file:///Users/dustin/development/python/svn/test/repo',
+      'repository_uuid': '48195b71-8d94-4528-a019-ec81ebc7e65a',
+      'url': 'file:///Users/dustin/development/python/svn/test/repo',
+      'wc-info/depth': None,
+      'wc-info/schedule': None,
+      'wc-info/wcroot-abspath': None,
+      'wcinfo_depth': None,
+      'wcinfo_schedule': None,
+      'wcinfo_wcroot_abspath': None }
 
 
 RemoteClient
