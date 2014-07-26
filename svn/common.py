@@ -71,6 +71,7 @@ class CommonClient(object):
         entry_attr = root.find('entry').attrib
         commit_attr = root.find('entry/commit').attrib
 
+        relative_url = root.find('entry/relative-url')
         author = root.find('entry/commit/author')
         wcroot_abspath = root.find('entry/wc-info/wcroot-abspath')
         wcinfo_schedule = root.find('entry/wc-info/schedule')
@@ -81,9 +82,15 @@ class CommonClient(object):
             'entry#path': entry_attr['path'],
             'entry#revision': int(entry_attr['revision']),
             'url': root.find('entry/url').text,
-            'relative_url': root.find('entry/relative-url').text,
+
+            'relative_url': relative_url.text \
+                                if relative_url is not None and \
+                                   len(relative_url) \
+                                else None,
+
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
+
             'wc-info/wcroot-abspath': wcroot_abspath.text \
                                         if wcroot_abspath is not None and \
                                            len(wcroot_abspath) \
