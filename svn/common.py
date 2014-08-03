@@ -130,9 +130,6 @@ class CommonClient(object):
 
         return info
 
-    def export(self, path):
-        self.run_command('export', [self.__url_or_path, path])
-
     def cat(self, rel_filepath):
 # TODO(dustin): Verify that this handles binaries well.
         return self.run_command(
@@ -187,6 +184,10 @@ class CommonClient(object):
                 author=entry_info['author'],
                 revision=int(e.get('revision')),
                 date=dateutil.parser.parse(entry_info['date']))
+
+
+    def export(self, to_path):
+        self.run_command('export', [self.__url_or_path, to_path])
 
     @property
     def url(self):

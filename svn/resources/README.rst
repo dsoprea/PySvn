@@ -19,15 +19,23 @@ I've only implemented the functionality that I have required:
 Usage
 -----
 
-Usage is divided between two clients that either allow for access to a local working-directory or a remote repository.
+Usage is divided between two clients that either allow for access to a local 
+working-directory or a remote repository.
 
-Both clients inherit a common set of methods that work with both local working-directories and remote repositories.
+Both clients inherit a common set of methods that work with both local working-
+directories and remote repositories.
+
+`svn.utility.get_client` is provided for convenience. If you provide a location 
+that starts with a backslash, it will return a LocalClient instance. Otherwise, 
+it will return a RemoteClient instance.
 
 
 LocalClient
 ===========
 
 *LocalClient* allows access to a local working copy.
+
+- export(path)
 
 Example *LocalClient* usage::
 
@@ -73,6 +81,7 @@ RemoteClient
 *RemoteClient* allows access to a remote repository.
 
 - checkout(path)
+- export(path)
 
 Example *RemoteClient* usage::
 
@@ -88,7 +97,6 @@ Common Functionality
 These methods are available on both clients.
 
 - info()
-- export(path)
 - cat(rel_filepath)
 - log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None)
 

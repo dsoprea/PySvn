@@ -1,13 +1,12 @@
-from os import path
+import os.path
 
 import svn
+import svn.common
 
-from svn import common
 
-
-class LocalClient(common.CommonClient):
+class LocalClient(svn.common.CommonClient):
     def __init__(self, path_, *args, **kwargs):
-        if path.exists(path_) is False:
+        if os.path.exists(path_) is False:
             raise EnvironmentError("Path does not exist: %s" % (path_))
 
         super(LocalClient, self).__init__(path_, svn.T_PATH, *args, **kwargs)
