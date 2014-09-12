@@ -2,7 +2,7 @@ from collections import namedtuple
 
 
 def asCmdParameter(self):
-    cmdparam = []
+    cmdparam = ["--non-interactive"]
     params = self._asdict()
     if "username" in params:
         cmdparam.extend(("--username", params["username"]))
