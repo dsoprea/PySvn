@@ -100,6 +100,21 @@ These methods are available on both clients.
 - cat(rel_filepath)
 - log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None)
 
+SvnOptions
+================
+
+Subversion options for username, password and optional revision.
+
+Example *SubversionOptions* usage::
+
+    import svn.remote
+    from svn.options import SvnOptions
+
+    option = SvnOptions("username","password",None) # None for lastest revision
+    r = svn.remote.RemoteClient('https://repo.local/svn', options=option)
+    r.checkout('/tmp/working')
+
+
 
 Important
 =========
