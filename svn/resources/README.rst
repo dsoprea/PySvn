@@ -105,7 +105,7 @@ SvnOptions
 
 Subversion options for username, password and optional revision.
 
-Example *SubversionOptions* usage::
+Example *SvnOptions* usage::
 
     import svn.remote
     from svn.options import SvnOptions
