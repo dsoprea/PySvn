@@ -186,8 +186,15 @@ class CommonClient(object):
                 date=dateutil.parser.parse(entry_info['date']))
 
 
-    def export(self, to_path):
-        self.run_command('export', [self.__url_or_path, to_path])
+    def export(self, to_path, revision=None):
+        cmd = []
+
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+
+        cmd += [self.__url_or_path, to_path]
+
+        self.run_command('export', cmd)
 
     @property
     def url(self):
