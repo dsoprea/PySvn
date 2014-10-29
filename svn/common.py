@@ -20,7 +20,7 @@ class CommonClient(object):
 
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
-        cmd = ['svn', subcommand] + args
+        cmd = ['svn', '--non-interactive', subcommand] + args
 
         _logger.debug("RUN: %s" % (cmd,))
 
