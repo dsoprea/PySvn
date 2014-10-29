@@ -177,7 +177,7 @@ class CommonClient(object):
                 ['date', 'msg', 'revision', 'author'])
         
         for e in root.findall('logentry'):
-            entry_info = dict([(x.tag, x.text) for x in e.getchildren()])
+            entry_info = {x.tag: x.text for x in e.getchildren()}
 
             yield c(
                 msg=entry_info['msg'],
