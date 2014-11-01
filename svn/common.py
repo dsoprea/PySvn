@@ -1,3 +1,4 @@
+import os
 import subprocess
 import logging
 import dateutil.parser
@@ -138,7 +139,7 @@ class CommonClient(object):
                 return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
-                    limit=None):
+                    limit=None, rel_filepath=''):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -168,7 +169,7 @@ class CommonClient(object):
 
         result = self.run_command(
                     'log', 
-                    args + ['--xml', self.__url_or_path], 
+                    args + ['--xml', os.path.join(self.__url_or_path, rel_filepath)], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
