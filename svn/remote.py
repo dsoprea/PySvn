@@ -4,9 +4,10 @@ from svn import common
 
 
 class RemoteClient(common.CommonClient):
-    def __init__(self, url, username=None, password=None, *args, **kwargs):
-        self.username = username
-        self.password = password
+
+    def __init__(self, url, *args, **kwargs):
+        self.username = kwargs.pop('username', None)
+        self.password = kwargs.pop('password', None)
         super(RemoteClient, self).__init__(url, svn.T_URL, *args, **kwargs)
 
     def checkout(self, path, revision=None):
