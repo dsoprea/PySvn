@@ -15,10 +15,11 @@ class RemoteClient(common.CommonClient):
         if revision is not None:
             cmd += ['-r', str(revision)]
 
-        cmd += [self.url, path]
         if self.username is not None:
             cmd += ['--username', self.username]
             cmd += ['--password', self.password]
+
+        cmd += [self.url, path]
 
         self.run_command('checkout', cmd)
 
