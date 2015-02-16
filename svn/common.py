@@ -205,6 +205,9 @@ class CommonClient(object):
 
         self.run_command('export', cmd)
 
+    def list(self):
+        return self.run_command('ls', [self.__url_or_path])
+
     @property
     def url(self):
         if self.__type != svn.T_URL:
