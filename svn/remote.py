@@ -4,6 +4,7 @@ from svn import common
 
 
 class RemoteClient(common.CommonClient):
+
     def __init__(self, url, *args, **kwargs):
         super(RemoteClient, self).__init__(url, svn.T_URL, *args, **kwargs)
 
