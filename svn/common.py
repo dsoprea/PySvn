@@ -11,8 +11,10 @@ _logger = logging.getLogger('svn')
 
 
 class CommonClient(object):
-    def __init__(self, url_or_path, type_):
+    def __init__(self, url_or_path, type_, *args, **kwargs):
         self.__url_or_path = url_or_path
+        self.__username = kwargs.pop('username', None)
+        self.__password = kwargs.pop('password', None)
 
         if type_ not in (svn.T_URL, svn.T_PATH):
             raise ValueError("Type is invalid: %s" % (type_))
@@ -21,7 +23,13 @@ class CommonClient(object):
 
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
-        cmd = ['svn', '--non-interactive', subcommand] + args
+        cmd = ['svn', '--non-interactive']
+
+        if self.__username is not None and self.__password is not None:
+            cmd += ['--username', self.__username]
+            cmd += ['--password', self.__password]
+
+        cmd += [subcommand] + args
 
         _logger.debug("RUN: %s" % (cmd,))
 
@@ -196,6 +204,9 @@ class CommonClient(object):
         cmd += [self.__url_or_path, to_path]
 
         self.run_command('export', cmd)
+
+    def list(self):
+        return self.run_command('ls', [self.__url_or_path])
 
     @property
     def url(self):
