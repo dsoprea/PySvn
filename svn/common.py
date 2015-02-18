@@ -13,8 +13,8 @@ _logger = logging.getLogger('svn')
 class CommonClient(object):
     def __init__(self, url_or_path, type_, *args, **kwargs):
         self.__url_or_path = url_or_path
-        self.username = kwargs.pop('username', None)
-        self.password = kwargs.pop('password', None)
+        self.__username = kwargs.pop('username', None)
+        self.__password = kwargs.pop('password', None)
 
         if type_ not in (svn.T_URL, svn.T_PATH):
             raise ValueError("Type is invalid: %s" % (type_))
@@ -25,9 +25,9 @@ class CommonClient(object):
                     return_stderr=False, combine=False, return_binary=False):
         cmd = ['svn', '--non-interactive']
 
-        if self.username is not None:
-            cmd += ['--username', self.username]
-            cmd += ['--password', self.password]
+        if self.__username is not None and self.__password is not None:
+            cmd += ['--username', self.__username]
+            cmd += ['--password', self.__password]
 
         cmd += [subcommand] + args
 
