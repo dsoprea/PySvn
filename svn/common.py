@@ -38,9 +38,10 @@ class CommonClient(object):
                              stdout=subprocess.PIPE, 
                              stderr=subprocess.STDOUT)
 
+        r = p.wait()
         stdout = p.stdout.read()
 
-        if p.returncode != success_code:
+        if r != success_code:
             raise ValueError("Command failed with (%d): %s\n%s" % 
                              (p.returncode, cmd, stdout))
 
