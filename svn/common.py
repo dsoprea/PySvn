@@ -9,10 +9,6 @@ import svn
 
 _logger = logging.getLogger('svn')
 
-_DO_ALLOW_INTERACTIVE = bool(int(os.environ.get(
-                            'SVN_DO_ALLOW_INTERACTIVE', 
-                            '0')))
-
 
 class CommonClient(object):
     def __init__(self, url_or_path, type_, *args, **kwargs):
@@ -28,10 +24,7 @@ class CommonClient(object):
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
 # TODO(dustin): return_stderr is no longer implemented.
-        cmd = ['svn']
-
-        if _DO_ALLOW_INTERACTIVE is False:
-            cmd += ['--non-interactive']
+        cmd = ['svn', '--non-interactive']
 
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
@@ -56,7 +49,7 @@ class CommonClient(object):
 
         stdout = stdout.decode('ASCII')
 
-        return s if combine is True else stdout.split("\n")
+        return stdout if combine is True else stdout.split("\n")
 
     def rows_to_dict(self, rows, lc=True):
         d = {}
