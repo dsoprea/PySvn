@@ -27,6 +27,7 @@ class CommonClient(object):
 
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
+# TODO(dustin): return_stderr is no longer implemented.
         cmd = ['svn']
 
         if _DO_ALLOW_INTERACTIVE is False:
@@ -42,20 +43,20 @@ class CommonClient(object):
 
         p = subprocess.Popen(cmd, 
                              stdout=subprocess.PIPE, 
-                             stderr=subprocess.PIPE)
+                             stderr=subprocess.STDOUT)
 
-        (stdout, stderr) = p.communicate()
+        stdout = p.stdout.read()
+
         if p.returncode != success_code:
-            raise ValueError("Command failed with (%d): %s\n%s\n%s" % 
-                             (p.returncode, cmd, stdout, stderr))
+            raise ValueError("Command failed with (%d): %s\n%s" % 
+                             (p.returncode, cmd, stdout))
 
-        s = stderr if return_stderr is True else stdout
         if return_binary is True:
-            return s
+            return stdout
 
-        s = s.decode('ASCII')
+        stdout = stdout.decode('ASCII')
 
-        return s if combine is True else s.split("\n")
+        return s if combine is True else stdout.split("\n")
 
     def rows_to_dict(self, rows, lc=True):
         d = {}
