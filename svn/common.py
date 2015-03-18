@@ -77,6 +77,8 @@ class CommonClient(object):
                     ['--xml', self.__url_or_path], 
                     combine=True)
 
+        begin = str(result).find('<?xml')
+        result = result[begin:]
         root = xml.etree.ElementTree.fromstring(result)
 
         entry_attr = root.find('entry').attrib
