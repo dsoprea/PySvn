@@ -1,12 +1,14 @@
-import svn
+import svn.constants
+import svn.common
 
-from svn import common
 
-
-class RemoteClient(common.CommonClient):
+class RemoteClient(svn.common.CommonClient):
 
     def __init__(self, url, *args, **kwargs):
-        super(RemoteClient, self).__init__(url, svn.T_URL, *args, **kwargs)
+        super(RemoteClient, self).__init__(
+            url, 
+            svn.constants.LT_URL, 
+            *args, **kwargs)
 
     def checkout(self, path, revision=None):
         cmd = []

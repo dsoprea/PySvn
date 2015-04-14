@@ -5,7 +5,7 @@ import dateutil.parser
 import collections
 import xml.etree.ElementTree
 
-import svn
+import svn.constants
 
 _logger = logging.getLogger('svn')
 
@@ -16,7 +16,7 @@ class CommonClient(object):
         self.__username = kwargs.pop('username', None)
         self.__password = kwargs.pop('password', None)
 
-        if type_ not in (svn.T_URL, svn.T_PATH):
+        if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise ValueError("Type is invalid: %s" % (type_))
 
         self.__type = type_
@@ -207,19 +207,73 @@ class CommonClient(object):
 
         self.run_command('export', cmd)
 
-    def list(self):
-        return self.run_command('ls', [self.__url_or_path])
+    def list(self, extended=False, rel_path=None):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        if extended is False:
+            for filename in self.run_command(
+                                'ls', 
+                                [full_url_or_path]):
+                yield filename
+
+        else:
+            raw = self.run_command(
+                    'ls', 
+                    ['--xml', full_url_or_path], 
+                    combine=True)
+
+            root = xml.etree.ElementTree.fromstring(raw)
+
+            list_ = root.findall('list/entry')
+            for entry in list_:
+                entry_attr = entry.attrib
+
+                kind = entry_attr['kind']
+                name = entry.find('name').text
+                
+                size = entry.find('size')
+
+                # This will be None for directories.
+                if size is not None:
+                    size = int(size.text)
+                
+                commit_node = entry.find('commit')
+                
+                author = commit_node.find('author').text
+                date = dateutil.parser.parse(commit_node.find('date').text)
+
+                commit_attr = commit_node.attrib
+                revision = int(commit_attr['revision'])
+
+                yield {
+                    'kind': kind,
+
+                    # To decouple people from the knowledge of the value.
+                    'is_directory': kind == svn.constants.K_DIR,
+
+                    'name': name, 
+                    'size': size,
+                    'author': author,
+                    'date': date,
+                    
+                    # Our approach to normalizing a goofy field-name.
+                    'timestamp': date,
+
+                    'revision': revision,
+                }
 
     @property
     def url(self):
-        if self.__type != svn.T_URL:
+        if self.__type != svn.constants.LT_URL:
             raise EnvironmentError("Only the remote-client has access to the URL.")
 
         return self.__url_or_path
 
     @property
     def path(self):
-        if self.__type != svn.T_PATH:
+        if self.__type != svn.constants.LT_PATH:
             raise EnvironmentError("Only the local-client has access to the path.")
 
         return self.__url_or_path
