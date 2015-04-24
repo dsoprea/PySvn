@@ -17,14 +17,47 @@ formatter = logging.Formatter(FMT)
 ch.setFormatter(formatter)
 _logger.addHandler(ch)
 
+print("Printing log.")
+
+import pprint
+
+import svn.local
+
+l = svn.local.LocalClient('/tmp/test_repo.co')
+
+for rel_path, e in l.list_recursive():
+    print('')
+    print('[' + rel_path + ']')
+    print('')
+    pprint.pprint(e)
+
+#LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
+#LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
+
+sys.exit(0)
+
 import svn.local
 import svn.remote
 import pprint
 
 #r = svn.remote.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
 #r = svn.local.LocalClient('/Users/dustin/development/php/adam2')
-r = svn.local.LocalClient('working_copy')
-pprint.pprint(r.info())
+
+import svn.local
+import pprint
+
+l = svn.local.LocalClient('/tmp/test_repo.co')
+info = l.info()
+pprint.pprint(info)
+
+sys.exit(0)
+
+#print(list(r.list(extended=True)))
+
+l = r.list_recursive(rel_path=None, yield_dirs=False, path_filter_cb=None)
+l = list(l)
+
+pprint.pprint(l)
 
 #print(r.cat('sfs/package/DEBIAN/postinst'))
 
