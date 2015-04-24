@@ -71,10 +71,14 @@ class CommonClient(object):
 
         return d
 
-    def info(self):
+    def info(self, rel_path=None):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
         result = self.run_command(
                     'info', 
-                    ['--xml', self.__url_or_path], 
+                    ['--xml', full_url_or_path], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
@@ -88,16 +92,20 @@ class CommonClient(object):
         wcinfo_schedule = root.find('entry/wc-info/schedule')
         wcinfo_depth = root.find('entry/wc-info/depth')
 
-        info = {        
-            'entry#kind': entry_attr['kind'],
-            'entry#path': entry_attr['path'],
-            'entry#revision': int(entry_attr['revision']),
+        info = {
             'url': root.find('entry/url').text,
 
             'relative_url': relative_url.text \
                                 if relative_url is not None and \
                                    len(relative_url) \
                                 else None,
+
+# TODO(dustin): These are just for backwards-compatibility. Use the ones added 
+#               below.
+
+            'entry#kind': entry_attr['kind'],
+            'entry#path': entry_attr['path'],
+            'entry#revision': int(entry_attr['revision']),
 
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
@@ -149,10 +157,14 @@ class CommonClient(object):
                 return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
-                    limit=None, rel_filepath=''):
+                    limit=None, rel_filepath=None):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
+
+        full_url_or_path = self.__url_or_path
+        if rel_filepath is not None:
+            full_url_or_path += '/' + rel_filepath
 
         timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
                                     if timestamp_from_dt \
@@ -179,7 +191,7 @@ class CommonClient(object):
 
         result = self.run_command(
                     'log', 
-                    args + ['--xml', os.path.join(self.__url_or_path, rel_filepath)], 
+                    args + ['--xml', full_url_or_path], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
@@ -213,10 +225,12 @@ class CommonClient(object):
             full_url_or_path += '/' + rel_path
 
         if extended is False:
-            for filename in self.run_command(
+            for line in self.run_command(
                                 'ls', 
                                 [full_url_or_path]):
-                yield filename
+                line = line.strip()
+                if line:
+                    yield line
 
         else:
             raw = self.run_command(
@@ -261,8 +275,40 @@ class CommonClient(object):
                     # Our approach to normalizing a goofy field-name.
                     'timestamp': date,
 
-                    'revision': revision,
+                    'commit_revision': revision,
                 }
+
+    def list_recursive(self, rel_path=None, yield_dirs=False, 
+                       path_filter_cb=None):
+        q = [rel_path]
+        while q:
+            current_rel_path = q[0]
+            del q[0]
+
+            for entry in self.list(extended=True, rel_path=current_rel_path):
+                if entry['is_directory'] is True:
+                    if current_rel_path is not None:
+                        next_rel_path = \
+                            os.path.join(current_rel_path, entry['name'])
+                    else:
+                        next_rel_path = entry['name']
+
+                    do_queue = True
+                    if path_filter_cb is not None:
+                        result = path_filter_cb(next_rel_path)
+                        if result is False:
+                            do_queue = False
+
+                    if do_queue is True:
+                        q.append(next_rel_path)
+
+                if entry['is_directory'] is False or yield_dirs is True:
+                    current_rel_path_phrase = \
+                        current_rel_path \
+                            if current_rel_path is not None \
+                            else ''
+
+                    yield (current_rel_path_phrase, entry)
 
     @property
     def url(self):
