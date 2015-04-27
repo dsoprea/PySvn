@@ -48,8 +48,6 @@ class CommonClient(object):
         if return_binary is True:
             return stdout
 
-        stdout = stdout.decode('ASCII')
-
         return stdout if combine is True else stdout.split("\n")
 
     def rows_to_dict(self, rows, lc=True):
@@ -150,7 +148,6 @@ class CommonClient(object):
         return info
 
     def cat(self, rel_filepath):
-# TODO(dustin): Verify that this handles binaries well.
         return self.run_command(
                 'cat', 
                 [self.__url_or_path + '/' + rel_filepath], 
