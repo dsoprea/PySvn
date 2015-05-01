@@ -5,7 +5,7 @@ import dateutil.parser
 import collections
 import xml.etree.ElementTree
 
-import svn
+import svn.constants
 
 _logger = logging.getLogger('svn')
 
@@ -16,7 +16,7 @@ class CommonClient(object):
         self.__username = kwargs.pop('username', None)
         self.__password = kwargs.pop('password', None)
 
-        if type_ not in (svn.T_URL, svn.T_PATH):
+        if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise ValueError("Type is invalid: %s" % (type_))
 
         self.__type = type_
@@ -48,8 +48,6 @@ class CommonClient(object):
         if return_binary is True:
             return stdout
 
-        stdout = stdout.decode('ASCII')
-
         return stdout if combine is True else stdout.split("\n")
 
     def rows_to_dict(self, rows, lc=True):
@@ -71,10 +69,14 @@ class CommonClient(object):
 
         return d
 
-    def info(self):
+    def info(self, rel_path=None):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
         result = self.run_command(
                     'info', 
-                    ['--xml', self.__url_or_path], 
+                    ['--xml', full_url_or_path], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
@@ -88,16 +90,20 @@ class CommonClient(object):
         wcinfo_schedule = root.find('entry/wc-info/schedule')
         wcinfo_depth = root.find('entry/wc-info/depth')
 
-        info = {        
-            'entry#kind': entry_attr['kind'],
-            'entry#path': entry_attr['path'],
-            'entry#revision': int(entry_attr['revision']),
+        info = {
             'url': root.find('entry/url').text,
 
             'relative_url': relative_url.text \
                                 if relative_url is not None and \
                                    len(relative_url) \
                                 else None,
+
+# TODO(dustin): These are just for backwards-compatibility. Use the ones added 
+#               below.
+
+            'entry#kind': entry_attr['kind'],
+            'entry#path': entry_attr['path'],
+            'entry#revision': int(entry_attr['revision']),
 
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
@@ -142,17 +148,20 @@ class CommonClient(object):
         return info
 
     def cat(self, rel_filepath):
-# TODO(dustin): Verify that this handles binaries well.
         return self.run_command(
                 'cat', 
                 [self.__url_or_path + '/' + rel_filepath], 
                 return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
-                    limit=None, rel_filepath=''):
+                    limit=None, rel_filepath=None):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
+
+        full_url_or_path = self.__url_or_path
+        if rel_filepath is not None:
+            full_url_or_path += '/' + rel_filepath
 
         timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
                                     if timestamp_from_dt \
@@ -179,7 +188,7 @@ class CommonClient(object):
 
         result = self.run_command(
                     'log', 
-                    args + ['--xml', os.path.join(self.__url_or_path, rel_filepath)], 
+                    args + ['--xml', full_url_or_path], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
@@ -207,19 +216,107 @@ class CommonClient(object):
 
         self.run_command('export', cmd)
 
-    def list(self):
-        return self.run_command('ls', [self.__url_or_path])
+    def list(self, extended=False, rel_path=None):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        if extended is False:
+            for line in self.run_command(
+                                'ls', 
+                                [full_url_or_path]):
+                line = line.strip()
+                if line:
+                    yield line
+
+        else:
+            raw = self.run_command(
+                    'ls', 
+                    ['--xml', full_url_or_path], 
+                    combine=True)
+
+            root = xml.etree.ElementTree.fromstring(raw)
+
+            list_ = root.findall('list/entry')
+            for entry in list_:
+                entry_attr = entry.attrib
+
+                kind = entry_attr['kind']
+                name = entry.find('name').text
+                
+                size = entry.find('size')
+
+                # This will be None for directories.
+                if size is not None:
+                    size = int(size.text)
+                
+                commit_node = entry.find('commit')
+                
+                author = commit_node.find('author').text
+                date = dateutil.parser.parse(commit_node.find('date').text)
+
+                commit_attr = commit_node.attrib
+                revision = int(commit_attr['revision'])
+
+                yield {
+                    'kind': kind,
+
+                    # To decouple people from the knowledge of the value.
+                    'is_directory': kind == svn.constants.K_DIR,
+
+                    'name': name, 
+                    'size': size,
+                    'author': author,
+                    'date': date,
+                    
+                    # Our approach to normalizing a goofy field-name.
+                    'timestamp': date,
+
+                    'commit_revision': revision,
+                }
+
+    def list_recursive(self, rel_path=None, yield_dirs=False, 
+                       path_filter_cb=None):
+        q = [rel_path]
+        while q:
+            current_rel_path = q[0]
+            del q[0]
+
+            for entry in self.list(extended=True, rel_path=current_rel_path):
+                if entry['is_directory'] is True:
+                    if current_rel_path is not None:
+                        next_rel_path = \
+                            os.path.join(current_rel_path, entry['name'])
+                    else:
+                        next_rel_path = entry['name']
+
+                    do_queue = True
+                    if path_filter_cb is not None:
+                        result = path_filter_cb(next_rel_path)
+                        if result is False:
+                            do_queue = False
+
+                    if do_queue is True:
+                        q.append(next_rel_path)
+
+                if entry['is_directory'] is False or yield_dirs is True:
+                    current_rel_path_phrase = \
+                        current_rel_path \
+                            if current_rel_path is not None \
+                            else ''
+
+                    yield (current_rel_path_phrase, entry)
 
     @property
     def url(self):
-        if self.__type != svn.T_URL:
+        if self.__type != svn.constants.LT_URL:
             raise EnvironmentError("Only the remote-client has access to the URL.")
 
         return self.__url_or_path
 
     @property
     def path(self):
-        if self.__type != svn.T_PATH:
+        if self.__type != svn.constants.LT_PATH:
             raise EnvironmentError("Only the local-client has access to the path.")
 
         return self.__url_or_path
