@@ -199,11 +199,16 @@ class CommonClient(object):
         for e in root.findall('logentry'):
             entry_info = {x.tag: x.text for x in e.getchildren()}
 
+            date = None
+            date_text = entry_info.get('date')
+            if date_text is not None:
+                date = dateutil.parser.parse(date_text)
+
             yield c(
-                msg=entry_info['msg'],
-                author=entry_info['author'],
+                msg=entry_info.get('msg'),
+                author=entry_info.get('author'),
                 revision=int(e.get('revision')),
-                date=dateutil.parser.parse(entry_info['date']))
+                date=date)
 
 
     def export(self, to_path, revision=None):
