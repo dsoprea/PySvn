@@ -95,7 +95,7 @@ class CommonClient(object):
 
             'relative_url': relative_url.text \
                                 if relative_url is not None and \
-                                   len(relative_url) \
+                                   len(relative_url.text) \
                                 else None,
 
 # TODO(dustin): These are just for backwards-compatibility. Use the ones added 
@@ -110,19 +110,19 @@ class CommonClient(object):
 
             'wc-info/wcroot-abspath': wcroot_abspath.text \
                                         if wcroot_abspath is not None and \
-                                           len(wcroot_abspath) \
+                                           len(wcroot_abspath.text) \
                                         else None,
             'wc-info/schedule': wcinfo_schedule.text \
                                     if wcinfo_schedule is not None and \
-                                       len(wcinfo_schedule) \
+                                       len(wcinfo_schedule.text) \
                                     else None,
             'wc-info/depth': wcinfo_depth.text \
                                     if wcinfo_depth is not None and \
-                                       len(wcinfo_depth) \
+                                       len(wcinfo_depth.text) \
                                     else None,
             'commit/author': author.text \
                                     if author is not None and \
-                                       len(author) \
+                                       len(author.text) \
                                     else None,
             'commit/date': dateutil.parser.parse(
                             root.find('entry/commit/date').text),
