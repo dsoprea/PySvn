@@ -133,6 +133,8 @@ class CommonClient(object):
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
+# TODO(dustin): Should we be casting the integers?
+
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
         info['entry_revision'] = info['entry#revision']

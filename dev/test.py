@@ -40,7 +40,7 @@ import svn.local
 import svn.remote
 import pprint
 
-#r = svn.remote.RemoteClient('https://opsvn.openpeak.com/svn/adam2/trunk')
+#r = svn.remote.RemoteClient('https://xyz/svn/adam2/trunk')
 #r = svn.local.LocalClient('/Users/dustin/development/php/adam2')
 
 import svn.local
