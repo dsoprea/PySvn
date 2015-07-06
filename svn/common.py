@@ -17,13 +17,13 @@ class CommonClient(object):
         self.__password = kwargs.pop('password', None)
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
-            raise ValueError("Type is invalid: %s" % (type_))
+            raise ValueError("Type is invalid: %s" % type_)
 
         self.__type = type_
 
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
-# TODO(dustin): return_stderr is no longer implemented.
+#   TODO(dustin): return_stderr is no longer implemented.
         cmd = ['svn', '--non-interactive']
 
         if self.__username is not None and self.__password is not None:
@@ -74,10 +74,7 @@ class CommonClient(object):
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
-        result = self.run_command(
-                    'info', 
-                    ['--xml', full_url_or_path], 
-                    combine=True)
+        result = self.run_command('info', ['--xml', full_url_or_path], combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
 
@@ -93,13 +90,9 @@ class CommonClient(object):
         info = {
             'url': root.find('entry/url').text,
 
-            'relative_url': relative_url.text \
-                                if relative_url is not None and \
-                                   len(relative_url) \
-                                else None,
+            'relative_url': relative_url.text if relative_url is not None and len(relative_url.text) else None,
 
-# TODO(dustin): These are just for backwards-compatibility. Use the ones added 
-#               below.
+#       TODO(dustin): These are just for backwards-compatibility. Use the ones added
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
@@ -108,24 +101,11 @@ class CommonClient(object):
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
 
-            'wc-info/wcroot-abspath': wcroot_abspath.text \
-                                        if wcroot_abspath is not None and \
-                                           len(wcroot_abspath) \
-                                        else None,
-            'wc-info/schedule': wcinfo_schedule.text \
-                                    if wcinfo_schedule is not None and \
-                                       len(wcinfo_schedule) \
-                                    else None,
-            'wc-info/depth': wcinfo_depth.text \
-                                    if wcinfo_depth is not None and \
-                                       len(wcinfo_depth) \
-                                    else None,
-            'commit/author': author.text \
-                                    if author is not None and \
-                                       len(author) \
-                                    else None,
-            'commit/date': dateutil.parser.parse(
-                            root.find('entry/commit/date').text),
+            'wc-info/wcroot-abspath': wcroot_abspath.text if wcroot_abspath is not None and len(wcroot_abspath.text) else None,
+            'wc-info/schedule': wcinfo_schedule.text if wcinfo_schedule is not None and len(wcinfo_schedule.text) else None,
+            'wc-info/depth': wcinfo_depth.text if wcinfo_depth is not None and len(wcinfo_depth.text) else None,
+            'commit/author': author.text if author is not None and len(author.text) else None,
+            'commit/date': dateutil.parser.parse(root.find('entry/commit/date').text),
             'commit#revision': int(commit_attr['revision']),
         }
 
@@ -133,7 +113,7 @@ class CommonClient(object):
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
-# TODO(dustin): Should we be casting the integers?
+#       TODO(dustin): Should we be casting the integers?
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
@@ -151,9 +131,17 @@ class CommonClient(object):
 
     def cat(self, rel_filepath):
         return self.run_command(
-                'cat', 
-                [self.__url_or_path + '/' + rel_filepath], 
-                return_binary=True)
+            'cat',
+            [self.__url_or_path + '/' + rel_filepath],
+            return_binary=True
+        )
+
+    def update(self):
+        return self.run_command(
+            'update',
+            [self.__url_or_path],
+            return_binary=True
+        )
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
                     limit=None, rel_filepath=None):
@@ -201,11 +189,16 @@ class CommonClient(object):
         for e in root.findall('logentry'):
             entry_info = {x.tag: x.text for x in e.getchildren()}
 
+            date = None
+            date_text = entry_info.get('date')
+            if date_text is not None:
+                date = dateutil.parser.parse(date_text)
+
             yield c(
-                msg=entry_info['msg'],
-                author=entry_info['author'],
+                msg=entry_info.get('msg'),
+                author=entry_info.get('author'),
                 revision=int(e.get('revision')),
-                date=dateutil.parser.parse(entry_info['date']))
+                date=date)
 
 
     def export(self, to_path, revision=None):
