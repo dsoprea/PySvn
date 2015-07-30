@@ -309,6 +309,25 @@ class CommonClient(object):
 
                     yield (current_rel_path_phrase, entry)
 
+    def diff_summary(self, old, new, rel_path=None):
+        """
+        Provides a summarized output of a diff between two revisions (file, change type, file type)
+        """
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        result = self.run_command(
+            'diff',
+            ['--old', '{0}@{1}'.format(full_url_or_path, old),
+             '--new', '{0}@{1}'.format(full_url_or_path, new),
+             '--summarize', '--xml'],
+            combine=True)
+        root = xml.etree.ElementTree.fromstring(result)
+        diff = []
+        for element in root.findall('paths/path'):
+            diff.append({'path': element.text, 'item': element.attrib['item'], 'kind': element.attrib['kind']})
+        return diff
+
     @property
     def url(self):
         if self.__type != svn.constants.LT_URL:
