@@ -36,7 +36,10 @@ class CommonClient(object):
 
         p = subprocess.Popen(cmd, 
                              stdout=subprocess.PIPE, 
-                             stderr=subprocess.STDOUT)
+                             stderr=subprocess.STDOUT,
+                             # in Python3 universal_newlines results in the stdout being converted to a str
+                             # see https://docs.python.org/3/library/subprocess.html#frequently-used-arguments
+                             universal_newlines=not return_binary)
 
         stdout = p.stdout.read()
         r = p.wait()
@@ -48,7 +51,7 @@ class CommonClient(object):
         if return_binary is True:
             return stdout
 
-        return stdout if combine is True else stdout.split("\n")
+        return stdout if combine is True else stdout.splitlines()
 
     def rows_to_dict(self, rows, lc=True):
         d = {}
