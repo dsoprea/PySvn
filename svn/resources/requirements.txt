@@ -1,2 +1,2 @@
-python-dateutil>=2.2
-six>=1.7.2
+python-dateutil==2.2
+six==1.7.2
