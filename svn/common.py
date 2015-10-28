@@ -202,10 +202,10 @@ class CommonClient(object):
             entry_info = {x.tag: x.text for x in e.getchildren()}
 
             yield c(
-                msg=entry_info['msg'],
-                author=entry_info['author'],
+                msg=entry_info.get('msg', ''),
+                author=entry_info.get('author', ''),
                 revision=int(e.get('revision')),
-                date=dateutil.parser.parse(entry_info['date']))
+                date=dateutil.parser.parse(entry_info.get('date', ''))
 
 
     def export(self, to_path, revision=None):
