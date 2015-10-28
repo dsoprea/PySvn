@@ -110,7 +110,7 @@ These methods are available on both clients.
         l = svn.local.LocalClient('/tmp/test_repo')
         content = l.cat('test_file')
 
-- log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='')
+- log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='', stop_on_copy=False)
 
     Perform a log-listing that can be bounded by time and/or take a maximum-
     count.
