@@ -48,7 +48,10 @@ class CommonClient(object):
         if return_binary is True:
             return stdout
 
-        return stdout if combine is True else stdout.split("\n")
+        if combine is True:
+            return stdout 
+        else:
+            return stdout.decode().strip('\n').split('\n')
 
     def rows_to_dict(self, rows, lc=True):
         d = {}
