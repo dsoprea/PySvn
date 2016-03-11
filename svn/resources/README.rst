@@ -41,14 +41,15 @@ RemoteClient
 
 *RemoteClient* allows access to a remote repository.
 
-- checkout(path)
+checkout(path)
+^^^^^^^^^^^^^^
 
-    Example::
+Checkout a remote repository::
 
-        import svn.remote
+    import svn.remote
 
-        r = svn.remote.RemoteClient('https://repo.local/svn')
-        r.checkout('/tmp/working')
+    r = svn.remote.RemoteClient('https://repo.local/svn')
+    r.checkout('/tmp/working')
 
 
 Common Functionality
@@ -56,184 +57,178 @@ Common Functionality
 
 These methods are available on both clients.
 
-- info(rel_path=None)
+info(rel_path=None)
+^^^^^^^^^^^^^^^^^^^
 
-    Get information about the directory.
+Get information about the directory::
 
-    Example::
+    import pprint
 
-        import pprint
+    import svn.local
 
-        import svn.local
+    r = svn.local.LocalClient('/tmp/test_repo.co')
+    info = r.info()
+    pprint.pprint(info)
 
-        r = svn.local.LocalClient('/tmp/test_repo.co')
-        info = r.info()
-        pprint.pprint(info)
+    #{'commit#revision': 0,
+    # 'commit/author': None,
+    # 'commit/date': datetime.datetime(2015, 4, 24, 2, 53, 21, 874970, tzinfo=tzutc()),
+    # 'commit_author': None,
+    # 'commit_date': datetime.datetime(2015, 4, 24, 2, 53, 21, 874970, tzinfo=tzutc()),
+    # 'commit_revision': 0,
+    # 'entry#kind': 'dir',
+    # 'entry#path': '/tmp/test_repo.co',
+    # 'entry#revision': 0,
+    # 'entry_kind': 'dir',
+    # 'entry_path': '/tmp/test_repo.co',
+    # 'entry_revision': 0,
+    # 'relative_url': None,
+    # 'repository/root': 'file:///tmp/test_repo',
+    # 'repository/uuid': '7446d4e9-8846-46c0-858a-34a2a1739d1c',
+    # 'repository_root': 'file:///tmp/test_repo',
+    # 'repository_uuid': '7446d4e9-8846-46c0-858a-34a2a1739d1c',
+    # 'url': 'file:///tmp/test_repo',
+    # 'wc-info/depth': None,
+    # 'wc-info/schedule': None,
+    # 'wc-info/wcroot-abspath': None,
+    # 'wcinfo_depth': None,
+    # 'wcinfo_schedule': None,
+    # 'wcinfo_wcroot_abspath': None}
 
-        #{'commit#revision': 0,
-        # 'commit/author': None,
-        # 'commit/date': datetime.datetime(2015, 4, 24, 2, 53, 21, 874970, tzinfo=tzutc()),
-        # 'commit_author': None,
-        # 'commit_date': datetime.datetime(2015, 4, 24, 2, 53, 21, 874970, tzinfo=tzutc()),
-        # 'commit_revision': 0,
-        # 'entry#kind': 'dir',
-        # 'entry#path': '/tmp/test_repo.co',
-        # 'entry#revision': 0,
-        # 'entry_kind': 'dir',
-        # 'entry_path': '/tmp/test_repo.co',
-        # 'entry_revision': 0,
-        # 'relative_url': None,
-        # 'repository/root': 'file:///tmp/test_repo',
-        # 'repository/uuid': '7446d4e9-8846-46c0-858a-34a2a1739d1c',
-        # 'repository_root': 'file:///tmp/test_repo',
-        # 'repository_uuid': '7446d4e9-8846-46c0-858a-34a2a1739d1c',
-        # 'url': 'file:///tmp/test_repo',
-        # 'wc-info/depth': None,
-        # 'wc-info/schedule': None,
-        # 'wc-info/wcroot-abspath': None,
-        # 'wcinfo_depth': None,
-        # 'wcinfo_schedule': None,
-        # 'wcinfo_wcroot_abspath': None}
+NOTE: The keys named with dashes, slashes, and hashes are considered 
+      obsolete, and only available for backwards compatibility. We 
+      have since moved to using only underscores to separate words.
 
-    NOTE: The keys named with dashes, slashes, and hashes are considered 
-          obsolete, and only available for backwards compatibility. We 
-          have since moved to using only underscores to separate words.
+cat(rel_filepath)
+^^^^^^^^^^^^^^^^^
 
-- cat(rel_filepath)
+Get file-data as string::
 
-    Get file-data as string.
+    import svn.local
 
-    Example::
+    l = svn.local.LocalClient('/tmp/test_repo')
+    content = l.cat('test_file')
 
-        import svn.local
+log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='')
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        l = svn.local.LocalClient('/tmp/test_repo')
-        content = l.cat('test_file')
+Perform a log-listing that can be bounded by time and/or take a maximum-
+count::
 
-- log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='')
+    import svn.local
 
-    Perform a log-listing that can be bounded by time and/or take a maximum-
-    count.
+    l = svn.local.LocalClient('/tmp/test_repo.co')
 
-    Example::
+    for e in l.log_default():
+        print(e)
 
-        import svn.local
+    #LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
+    #LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
 
-        l = svn.local.LocalClient('/tmp/test_repo.co')
+export(to_path, revision=None)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        for e in l.log_default():
-            print(e)
+Checkout the tree without embedding an meta-information::
 
-        #LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
-        #LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
+    import svn.remote
 
-- export(to_path, revision=None)
+    r = svn.remote.RemoteClient('file:///tmp/test_repo')
+    r.export('/tmp/test_export')
 
-    Checkout the tree without embedding an meta-information.
+list(extended=False, rel_path=None)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Example::
+Return either a flat-list of filenames or a list of objects describing even
+more information about each::
 
-        import svn.remote
+    import pprint
 
-        r = svn.remote.RemoteClient('file:///tmp/test_repo')
-        r.export('/tmp/test_export')
+    import svn.local
 
-- list(extended=False, rel_path=None)
+    l = svn.local.LocalClient('/tmp/test_repo.co')
+    
+    # Flat list.
 
-    Return either a flat-list of filenames or a list of objects describing even
-    more information about each.
+    entries = l.list()
+    for filename in entries:
+        print(filename)
 
-    Example:
+    #aa
+    #bb
 
-        import pprint
+    # Extended information.
 
-        import svn.local
+    entries = l.list(extended=True)
+    for entry in entries:
+        pprint.pprint(entry)
 
-        l = svn.local.LocalClient('/tmp/test_repo.co')
-        
-        # Flat list.
+    #{'author': 'dustin',
+    # 'commit_revision': 1,
+    # 'date': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()),
+    # 'is_directory': False,
+    # 'kind': 'file',
+    # 'name': 'aa',
+    # 'size': 0,
+    # 'timestamp': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc())}
+    #{'author': 'dustin',
+    # 'commit_revision': 2,
+    # 'date': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()),
+    # 'is_directory': False,
+    # 'kind': 'file',
+    # 'name': 'bb',
+    # 'size': 0,
+    # 'timestamp': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc())}
 
-        entries = l.list()
-        for filename in entries:
-            print(filename)
+list_recursive(rel_path=None, yield_dirs=False, path_filter_cb=None)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        #aa
-        #bb
+List all entries at and beneath the root or given relative-path::
 
-        # Extended information.
+    import pprint
 
-        entries = l.list(extended=True)
-        for entry in entries:
-            pprint.pprint(entry)
+    import svn.local
 
-        #{'author': 'dustin',
-        # 'commit_revision': 1,
-        # 'date': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()),
-        # 'is_directory': False,
-        # 'kind': 'file',
-        # 'name': 'aa',
-        # 'size': 0,
-        # 'timestamp': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc())}
-        #{'author': 'dustin',
-        # 'commit_revision': 2,
-        # 'date': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()),
-        # 'is_directory': False,
-        # 'kind': 'file',
-        # 'name': 'bb',
-        # 'size': 0,
-        # 'timestamp': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc())}
+    l = svn.local.LocalClient('/tmp/test_repo.co')
 
-- list_recursive(rel_path=None, yield_dirs=False, path_filter_cb=None)
+    for rel_path, e in l.list_recursive():
+        print('')
+        print('[' + rel_path + ']')
+        print('')
 
-    List all entries at and beneath the root or given relative-path.
+        pprint.pprint(e)
 
-    Example::
-
-        import pprint
-
-        import svn.local
-
-        l = svn.local.LocalClient('/tmp/test_repo.co')
-
-        for rel_path, e in l.list_recursive():
-            print('')
-            print('[' + rel_path + ']')
-            print('')
-
-            pprint.pprint(e)
-
-        #[]
-        #
-        #{'author': 'dustin',
-        # 'commit_revision': 1,
-        # 'date': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()),
-        # 'is_directory': False,
-        # 'kind': 'file',
-        # 'name': 'aa',
-        # 'size': 0,
-        # 'timestamp': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc())}
-        #
-        #[]
-        #
-        #{'author': 'dustin',
-        # 'commit_revision': 2,
-        # 'date': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()),
-        # 'is_directory': False,
-        # 'kind': 'file',
-        # 'name': 'bb',
-        # 'size': 0,
-        # 'timestamp': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc())}
-        #
-        #[dir1]
-        #
-        #{'author': 'dustin',
-        # 'commit_revision': 3,
-        # 'date': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc()),
-        # 'is_directory': False,
-        # 'kind': 'file',
-        # 'name': 'cc',
-        # 'size': 0,
-        # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
+    #[]
+    #
+    #{'author': 'dustin',
+    # 'commit_revision': 1,
+    # 'date': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()),
+    # 'is_directory': False,
+    # 'kind': 'file',
+    # 'name': 'aa',
+    # 'size': 0,
+    # 'timestamp': datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc())}
+    #
+    #[]
+    #
+    #{'author': 'dustin',
+    # 'commit_revision': 2,
+    # 'date': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()),
+    # 'is_directory': False,
+    # 'kind': 'file',
+    # 'name': 'bb',
+    # 'size': 0,
+    # 'timestamp': datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc())}
+    #
+    #[dir1]
+    #
+    #{'author': 'dustin',
+    # 'commit_revision': 3,
+    # 'date': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc()),
+    # 'is_directory': False,
+    # 'kind': 'file',
+    # 'name': 'cc',
+    # 'size': 0,
+    # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
 
 
 Important
