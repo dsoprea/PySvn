@@ -159,7 +159,7 @@ class CommonClient(object):
                 return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
-                    limit=None, rel_filepath=None):
+                    limit=None, rel_filepath=None, stop_on_copy=False):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -190,6 +190,9 @@ class CommonClient(object):
 
         if limit is not None:
             args += ['-l', str(limit)]
+
+        if stop_on_copy is True:
+            args += ['--stop-on-copy']
 
         result = self.run_command(
                     'log', 
