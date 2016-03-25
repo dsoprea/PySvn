@@ -229,21 +229,3 @@ List all entries at and beneath the root or given relative-path::
     # 'name': 'cc',
     # 'size': 0,
     # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
-
-
-Important
-=========
-
-Previously, the *LocalClient* and *RemoteClient* classes were exposed at the 
-package level:
-
-- svn.LocalClient
-- svn.RemoteClient
-
-Unfortunately, this interfered with dependency management during installation.
-The imports will now have to be, respectively:
-
-- svn.local (for LocalClient)
-- svn.remote (for RemoteClient)
-
-We're sorry for the inconvenience.
