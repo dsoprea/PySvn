@@ -159,7 +159,8 @@ class CommonClient(object):
                 return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
-                    limit=None, rel_filepath=None, stop_on_copy=False):
+                    limit=None, rel_filepath=None, stop_on_copy=False,
+                    revision_from=None, revision_to=None):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -187,6 +188,19 @@ class CommonClient(object):
                 timestamp_to_phrase = 'HEAD'
 
             args += ['-r', timestamp_from_phrase + ':' + timestamp_to_phrase]
+
+        if revision_from or revision_to:
+            if timestamp_from_phrase or timestamp_to_phrase:
+                raise ValueError("The default log retriever can not take both "
+                                 "timestamp and revision number ranges.")
+
+            if not revision_from:
+                revision_from = '1'
+
+            if not revision_to:
+                revision_to = 'HEAD'
+
+            args += ['-r', str(revision_from) + ':' + str(revision_to)]
 
         if limit is not None:
             args += ['-l', str(limit)]
