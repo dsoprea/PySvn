@@ -29,6 +29,8 @@ directories and remote repositories.
 that starts with a backslash, it will return a LocalClient instance. Otherwise, 
 it will return a RemoteClient instance.
 
+You may pass `username` and `password` as optional arguments to both the constructor and utility function.
+
 
 LocalClient
 ===========
