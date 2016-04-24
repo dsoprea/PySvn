@@ -152,11 +152,12 @@ class CommonClient(object):
 
         return info
 
-    def cat(self, rel_filepath):
-        return self.run_command(
-                'cat', 
-                [self.__url_or_path + '/' + rel_filepath], 
-                return_binary=True)
+    def cat(self, rel_filepath, revision=None):
+        cmd = []                 
+        if revision is not None: 
+            cmd += ['-r', str(revision)]
+        cmd += [self.__url_or_path + '/' + rel_filepath]
+        return self.run_command('cat', cmd, return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
                     limit=None, rel_filepath=None, stop_on_copy=False,
