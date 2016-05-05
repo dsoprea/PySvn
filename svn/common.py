@@ -244,6 +244,19 @@ class CommonClient(object):
 
         self.run_command('export', cmd)
 
+
+    def import_tree(self, from_path, msg=None):
+        cmd = []
+
+        cmd += [from_path, self.__url_or_path]
+
+        if msg is not None:
+            cmd += ['-m', '%s' % str(msg)]
+
+        self.run_command('import', cmd)
+
+
+
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
