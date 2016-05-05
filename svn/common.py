@@ -15,6 +15,8 @@ class CommonClient(object):
         self.__url_or_path = url_or_path
         self.__username = kwargs.pop('username', None)
         self.__password = kwargs.pop('password', None)
+        self.__svn_path = kwargs.pop('svn_path', 'svn')
+        self.__trust_cert = kwargs.pop('trust_cert', None)
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise ValueError("Type is invalid: %s" % (type_))
@@ -24,7 +26,10 @@ class CommonClient(object):
     def run_command(self, subcommand, args, success_code=0, 
                     return_stderr=False, combine=False, return_binary=False):
 # TODO(dustin): return_stderr is no longer implemented.
-        cmd = ['svn', '--non-interactive']
+        cmd = [self.__svn_path, '--non-interactive']
+
+        if self.__trust_cert:
+            cmd += ['--trust-server-cert']
 
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
