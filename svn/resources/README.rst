@@ -1,3 +1,5 @@
+|donate|
+
 ------------
 Introduction
 ------------
@@ -231,3 +233,7 @@ List all entries at and beneath the root or given relative-path::
     # 'name': 'cc',
     # 'size': 0,
     # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
+
+.. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
+   :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !
+   :target: https://pledgie.com/campaigns/31718
