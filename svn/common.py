@@ -166,7 +166,7 @@ class CommonClient(object):
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
                     limit=None, rel_filepath=None, stop_on_copy=False,
-                    revision_from=None, revision_to=None):
+                    revision_from=None, revision_to=None, changelist=False):
         """Allow for the most-likely kind of log listing: the complete list, a 
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -214,15 +214,21 @@ class CommonClient(object):
         if stop_on_copy is True:
             args += ['--stop-on-copy']
 
+        if changelist is True:
+            args += ['--verbose']
+
         result = self.run_command(
                     'log', 
                     args + ['--xml', full_url_or_path], 
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
+        named_fields = ['date', 'msg', 'revision', 'author']
+        if changelist is True:
+            named_fields += ['changelist']
         c = collections.namedtuple(
                 'LogEntry', 
-                ['date', 'msg', 'revision', 'author'])
+                named_fields)
         
         for e in root.findall('logentry'):
             entry_info = {x.tag: x.text for x in e.getchildren()}
@@ -232,11 +238,21 @@ class CommonClient(object):
             if date_text is not None:
                 date = dateutil.parser.parse(date_text)
 
-            yield c(
-                msg=entry_info.get('msg'),
-                author=entry_info.get('author'),
-                revision=int(e.get('revision')),
-                date=date)
+            log_entry = {
+                'msg': entry_info.get('msg'),
+                'author': entry_info.get('author'),
+                'revision': int(e.get('revision')),
+                'date': date
+            }
+
+            if changelist is True:
+                cl = []
+                for ch in e.findall('paths/path'):
+                    cl.append((ch.attrib['action'], ch.text))
+
+                log_entry['changelist'] = cl
+
+            yield c(**log_entry)
 
 
     def export(self, to_path, revision=None):
