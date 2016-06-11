@@ -223,9 +223,7 @@ class CommonClient(object):
                     combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
-        named_fields = ['date', 'msg', 'revision', 'author']
-        if changelist is True:
-            named_fields += ['changelist']
+        named_fields = ['date', 'msg', 'revision', 'author', 'changelist']
         c = collections.namedtuple(
                 'LogEntry', 
                 named_fields)
@@ -251,6 +249,8 @@ class CommonClient(object):
                     cl.append((ch.attrib['action'], ch.text))
                 
                 log_entry['changelist'] = cl
+            else:
+                log_entry['changelist'] = None
             
             yield c(**log_entry)
 
