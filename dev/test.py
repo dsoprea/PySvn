@@ -49,6 +49,8 @@ import pprint
 l = svn.local.LocalClient('/tmp/test_repo.co')
 info = l.info()
 pprint.pprint(info)
+properties = l.properties()
+pprint.pprint(properties)
 
 sys.exit(0)
 
