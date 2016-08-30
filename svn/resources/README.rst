@@ -6,13 +6,14 @@ Introduction
 
 *svn* is a simple Subversion library for Python. I wrote it so that there could be a lightweight and accessible library that was also available on *PyPI*. It is compatible with both Python 2.7 and 3.3+.
 
-I've only implemented the functionality that I have required:
+Functions currently implemented:
 
-- Listing entries
-- Getting info
-- Getting log
-- Checking-out
-- Exporting
+- list
+- info
+- log
+- checkout
+- export
+- cat
 
 **You are more than welcome to submit pull-requests to add more support for additional subcommands.**
 
