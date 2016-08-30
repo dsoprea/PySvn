@@ -157,6 +157,44 @@ class CommonClient(object):
 
         return info
 
+    def properties(self, rel_path=None):
+        """ Return a dictionary with all svn-properties associated with a relative path
+        :param rel_path: relative path in the svn repo to query the properties from
+        :returns: a dictionary with the property name as key and the content as value 
+        """
+
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        property_list = []
+
+        result = self.run_command(
+                    'proplist', 
+                    ['--xml', full_url_or_path], 
+                    combine=True)
+
+        # query the proper list of this path
+        root = xml.etree.ElementTree.fromstring(result)
+        target_elem = root.find('target')
+        property_names = [ p.attrib["name"] for p in target_elem.findall('property')]
+
+        # now query the content of each propery
+        property_dict = {}
+
+        for property_name in property_names:
+            result = self.run_command(
+                        'propget', 
+                        ['--xml', '{0}'.format(property_name), full_url_or_path, ], 
+                        combine=True)
+            root = xml.etree.ElementTree.fromstring(result)
+            target_elem = root.find('target')
+            property_elem = target_elem.find('property')
+            property_dict[property_name] = property_elem.text
+        
+        return property_dict
+
+
     def cat(self, rel_filepath, revision=None):
         cmd = []                 
         if revision is not None: 
@@ -355,6 +393,25 @@ class CommonClient(object):
                             else ''
 
                     yield (current_rel_path_phrase, entry)
+
+    def diff_summary(self, old, new, rel_path=None):
+        """
+        Provides a summarized output of a diff between two revisions (file, change type, file type)
+        """
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        result = self.run_command(
+            'diff',
+            ['--old', '{0}@{1}'.format(full_url_or_path, old),
+             '--new', '{0}@{1}'.format(full_url_or_path, new),
+             '--summarize', '--xml'],
+            combine=True)
+        root = xml.etree.ElementTree.fromstring(result)
+        diff = []
+        for element in root.findall('paths/path'):
+            diff.append({'path': element.text, 'item': element.attrib['item'], 'kind': element.attrib['kind']})
+        return diff
 
     @property
     def url(self):
