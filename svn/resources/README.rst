@@ -22,14 +22,14 @@ Functions currently implemented:
 Usage
 -----
 
-Usage is divided between two clients that either allow for access to a local 
+Usage is divided between two clients that either allow for access to a local
 working-directory or a remote repository.
 
 Both clients inherit a common set of methods that work with both local working-
 directories and remote repositories.
 
-`svn.utility.get_client` is provided for convenience. If you provide a location 
-that starts with a backslash, it will return a LocalClient instance. Otherwise, 
+`svn.utility.get_client` is provided for convenience. If you provide a location
+that starts with a backslash, it will return a LocalClient instance. Otherwise,
 it will return a RemoteClient instance.
 
 You may pass `username` and `password` as optional arguments to both the constructor and utility function.
@@ -100,8 +100,8 @@ Get information about the directory::
     # 'wcinfo_schedule': None,
     # 'wcinfo_wcroot_abspath': None}
 
-NOTE: The keys named with dashes, slashes, and hashes are considered 
-      obsolete, and only available for backwards compatibility. We 
+NOTE: The keys named with dashes, slashes, and hashes are considered
+      obsolete, and only available for backwards compatibility. We
       have since moved to using only underscores to separate words.
 
 cat(rel_filepath)
@@ -151,7 +151,7 @@ more information about each::
     import svn.local
 
     l = svn.local.LocalClient('/tmp/test_repo.co')
-    
+
     # Flat list.
 
     entries = l.list()
