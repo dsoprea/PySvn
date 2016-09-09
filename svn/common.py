@@ -23,9 +23,9 @@ class CommonClient(object):
 
         self.__type = type_
 
-    def run_command(self, subcommand, args, success_code=0, 
+    def run_command(self, subcommand, args, success_code=0,
                     return_stderr=False, combine=False, return_binary=False):
-# TODO(dustin): return_stderr is no longer implemented.
+        # TODO(dustin): return_stderr is no longer implemented.
         cmd = [self.__svn_filepath, '--non-interactive']
 
         if self.__trust_cert:
@@ -39,22 +39,22 @@ class CommonClient(object):
 
         _logger.debug("RUN: %s" % (cmd,))
 
-        p = subprocess.Popen(cmd, 
-                             stdout=subprocess.PIPE, 
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
 
         stdout = p.stdout.read()
         r = p.wait()
 
         if r != success_code:
-            raise ValueError("Command failed with (%d): %s\n%s" % 
+            raise ValueError("Command failed with (%d): %s\n%s" %
                              (p.returncode, cmd, stdout))
 
         if return_binary is True:
             return stdout
 
         if combine is True:
-            return stdout 
+            return stdout
         else:
             return stdout.decode().strip('\n').split('\n')
 
@@ -66,7 +66,7 @@ class CommonClient(object):
                 continue
 
             pivot = row.index(': ')
-            
+
             k = row[:pivot]
             v = row[pivot + 2:]
 
@@ -83,9 +83,9 @@ class CommonClient(object):
             full_url_or_path += '/' + rel_path
 
         result = self.run_command(
-                    'info', 
-                    ['--xml', full_url_or_path], 
-                    combine=True)
+            'info',
+            ['--xml', full_url_or_path],
+            combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
 
@@ -102,12 +102,12 @@ class CommonClient(object):
             'url': root.find('entry/url').text,
 
             'relative_url': relative_url.text \
-                                if relative_url is not None and \
-                                   len(relative_url.text) \
-                                else None,
+                if relative_url is not None and \
+                   len(relative_url.text) \
+                else None,
 
-# TODO(dustin): These are just for backwards-compatibility. Use the ones added 
-#               below.
+            # TODO(dustin): These are just for backwards-compatibility. Use the ones added
+            #               below.
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
@@ -117,31 +117,31 @@ class CommonClient(object):
             'repository/uuid': root.find('entry/repository/uuid').text,
 
             'wc-info/wcroot-abspath': wcroot_abspath.text \
-                                        if wcroot_abspath is not None and \
-                                           len(wcroot_abspath.text) \
-                                        else None,
+                if wcroot_abspath is not None and \
+                   len(wcroot_abspath.text) \
+                else None,
             'wc-info/schedule': wcinfo_schedule.text \
-                                    if wcinfo_schedule is not None and \
-                                       len(wcinfo_schedule.text) \
-                                    else None,
+                if wcinfo_schedule is not None and \
+                   len(wcinfo_schedule.text) \
+                else None,
             'wc-info/depth': wcinfo_depth.text \
-                                    if wcinfo_depth is not None and \
-                                       len(wcinfo_depth.text) \
-                                    else None,
+                if wcinfo_depth is not None and \
+                   len(wcinfo_depth.text) \
+                else None,
             'commit/author': author.text \
-                                    if author is not None and \
-                                       len(author.text) \
-                                    else None,
+                if author is not None and \
+                   len(author.text) \
+                else None,
             'commit/date': dateutil.parser.parse(
-                            root.find('entry/commit/date').text),
+                root.find('entry/commit/date').text),
             'commit#revision': int(commit_attr['revision']),
         }
 
-        # Set some more intuitive keys, because no one likes dealing with 
+        # Set some more intuitive keys, because no one likes dealing with
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
-# TODO(dustin): Should we be casting the integers?
+        # TODO(dustin): Should we be casting the integers?
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
@@ -160,7 +160,7 @@ class CommonClient(object):
     def properties(self, rel_path=None):
         """ Return a dictionary with all svn-properties associated with a relative path
         :param rel_path: relative path in the svn repo to query the properties from
-        :returns: a dictionary with the property name as key and the content as value 
+        :returns: a dictionary with the property name as key and the content as value
         """
 
         full_url_or_path = self.__url_or_path
@@ -170,42 +170,41 @@ class CommonClient(object):
         property_list = []
 
         result = self.run_command(
-                    'proplist', 
-                    ['--xml', full_url_or_path], 
-                    combine=True)
+            'proplist',
+            ['--xml', full_url_or_path],
+            combine=True)
 
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
         target_elem = root.find('target')
-        property_names = [ p.attrib["name"] for p in target_elem.findall('property')]
+        property_names = [p.attrib["name"] for p in target_elem.findall('property')]
 
         # now query the content of each propery
         property_dict = {}
 
         for property_name in property_names:
             result = self.run_command(
-                        'propget', 
-                        ['--xml', '{0}'.format(property_name), full_url_or_path, ], 
-                        combine=True)
+                'propget',
+                ['--xml', '{0}'.format(property_name), full_url_or_path, ],
+                combine=True)
             root = xml.etree.ElementTree.fromstring(result)
             target_elem = root.find('target')
             property_elem = target_elem.find('property')
             property_dict[property_name] = property_elem.text
-        
+
         return property_dict
 
-
     def cat(self, rel_filepath, revision=None):
-        cmd = []                 
-        if revision is not None: 
+        cmd = []
+        if revision is not None:
             cmd += ['-r', str(revision)]
         cmd += [self.__url_or_path + '/' + rel_filepath]
         return self.run_command('cat', cmd, return_binary=True)
 
-    def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None, 
+    def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
                     limit=None, rel_filepath=None, stop_on_copy=False,
                     revision_from=None, revision_to=None, changelist=False):
-        """Allow for the most-likely kind of log listing: the complete list, a 
+        """Allow for the most-likely kind of log listing: the complete list, a
         FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
 
@@ -214,12 +213,12 @@ class CommonClient(object):
             full_url_or_path += '/' + rel_filepath
 
         timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
-                                    if timestamp_from_dt \
-                                    else ''
+            if timestamp_from_dt \
+            else ''
 
         timestamp_to_phrase = ('{' + timestamp_to_dt.isoformat() + '}') \
-                                if timestamp_to_dt \
-                                else ''
+            if timestamp_to_dt \
+            else ''
 
         args = []
 
@@ -256,16 +255,16 @@ class CommonClient(object):
             args += ['--verbose']
 
         result = self.run_command(
-                    'log', 
-                    args + ['--xml', full_url_or_path], 
-                    combine=True)
+            'log',
+            args + ['--xml', full_url_or_path],
+            combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
         named_fields = ['date', 'msg', 'revision', 'author', 'changelist']
         c = collections.namedtuple(
-                'LogEntry', 
-                named_fields)
-        
+            'LogEntry',
+            named_fields)
+
         for e in root.findall('logentry'):
             entry_info = {x.tag: x.text for x in e.getchildren()}
 
@@ -280,18 +279,17 @@ class CommonClient(object):
                 'revision': int(e.get('revision')),
                 'date': date
             }
-            
+
             if changelist is True:
                 cl = []
                 for ch in e.findall('paths/path'):
                     cl.append((ch.attrib['action'], ch.text))
-                
+
                 log_entry['changelist'] = cl
             else:
                 log_entry['changelist'] = None
-            
-            yield c(**log_entry)
 
+            yield c(**log_entry)
 
     def export(self, to_path, revision=None):
         cmd = []
@@ -310,17 +308,17 @@ class CommonClient(object):
 
         if extended is False:
             for line in self.run_command(
-                                'ls', 
-                                [full_url_or_path]):
+                    'ls',
+                    [full_url_or_path]):
                 line = line.strip()
                 if line:
                     yield line
 
         else:
             raw = self.run_command(
-                    'ls', 
-                    ['--xml', full_url_or_path], 
-                    combine=True)
+                'ls',
+                ['--xml', full_url_or_path],
+                combine=True)
 
             root = xml.etree.ElementTree.fromstring(raw)
 
@@ -330,15 +328,15 @@ class CommonClient(object):
 
                 kind = entry_attr['kind']
                 name = entry.find('name').text
-                
+
                 size = entry.find('size')
 
                 # This will be None for directories.
                 if size is not None:
                     size = int(size.text)
-                
+
                 commit_node = entry.find('commit')
-                
+
                 author = commit_node.find('author').text
                 date = dateutil.parser.parse(commit_node.find('date').text)
 
@@ -351,18 +349,18 @@ class CommonClient(object):
                     # To decouple people from the knowledge of the value.
                     'is_directory': kind == svn.constants.K_DIR,
 
-                    'name': name, 
+                    'name': name,
                     'size': size,
                     'author': author,
                     'date': date,
-                    
+
                     # Our approach to normalizing a goofy field-name.
                     'timestamp': date,
 
                     'commit_revision': revision,
                 }
 
-    def list_recursive(self, rel_path=None, yield_dirs=False, 
+    def list_recursive(self, rel_path=None, yield_dirs=False,
                        path_filter_cb=None):
         q = [rel_path]
         while q:
@@ -413,6 +411,25 @@ class CommonClient(object):
             diff.append({'path': element.text, 'item': element.attrib['item'], 'kind': element.attrib['kind']})
         return diff
 
+    def diff(self, old, new, rel_path=None):
+        """
+        Provides output of a diff between two revisions (file, change type, file type)
+        """
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        diff_result = self.run_command(
+            'diff',
+            ['--old', '{0}@{1}'.format(full_url_or_path, old),
+             '--new', '{0}@{1}'.format(full_url_or_path, new)],
+            combine=True)
+        file_to_diff = {i.split('==')[0].strip(): i.split('==')[-1].strip().strip('=').strip()
+                        for i in filter(None, diff_result.split('Index: '))}
+        diff_summaries = self.diff_summary(old, new, rel_path)
+        for diff_summary in diff_summaries:
+            diff_summary['diff'] = file_to_diff[diff_summary['path'].split(full_url_or_path)[-1]]
+        return diff_summaries
+
     @property
     def url(self):
         if self.__type != svn.constants.LT_URL:
@@ -424,5 +441,4 @@ class CommonClient(object):
     def path(self):
         if self.__type != svn.constants.LT_PATH:
             raise EnvironmentError("Only the local-client has access to the path.")
-
         return self.__url_or_path
