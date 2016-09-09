@@ -413,7 +413,8 @@ class CommonClient(object):
 
     def diff(self, old, new, rel_path=None):
         """
-        Provides output of a diff between two revisions (file, change type, file type)
+        Provides output of a diff between two revisions (file, change type,
+         file type)
         """
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
@@ -423,11 +424,15 @@ class CommonClient(object):
             ['--old', '{0}@{1}'.format(full_url_or_path, old),
              '--new', '{0}@{1}'.format(full_url_or_path, new)],
             combine=True)
-        file_to_diff = {i.split('==')[0].strip(): i.split('==')[-1].strip().strip('=').strip()
-                        for i in filter(None, diff_result.split('Index: '))}
+        file_to_diff = \
+            {
+                i.split('==')[0].strip(): i.split('==')[-1].strip('=').strip()
+                for i in filter(None, diff_result.split('Index: '))
+            }
         diff_summaries = self.diff_summary(old, new, rel_path)
         for diff_summary in diff_summaries:
-            diff_summary['diff'] = file_to_diff[diff_summary['path'].split(full_url_or_path)[-1]]
+            diff_summary['diff'] = \
+                file_to_diff[diff_summary['path'].split(full_url_or_path)[-1]]
         return diff_summaries
 
     @property
