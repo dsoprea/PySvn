@@ -108,8 +108,8 @@ class CommonClient(object):
             len(relative_url.text)
             else None,
 
-            # TODO(dustin): These are just for backwards-compatibility. Use the ones added
-            #               below.
+            # TODO(dustin): These are just for backwards-compatibility.
+            #               Use the ones added below.
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
@@ -160,9 +160,12 @@ class CommonClient(object):
         return info
 
     def properties(self, rel_path=None):
-        """ Return a dictionary with all svn-properties associated with a relative path
-        :param rel_path: relative path in the svn repo to query the properties from
-        :returns: a dictionary with the property name as key and the content as value 
+        """ Return a dictionary with all svn-properties associated with a
+            relative path.
+        :param rel_path: relative path in the svn repo to query the
+                         properties from
+        :returns: a dictionary with the property name as key and the content
+                  as value
         """
 
         full_url_or_path = self.__url_or_path
@@ -208,8 +211,8 @@ class CommonClient(object):
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
                     limit=None, rel_filepath=None, stop_on_copy=False,
                     revision_from=None, revision_to=None, changelist=False):
-        """Allow for the most-likely kind of log listing: the complete list, a 
-        FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
+        """Allow for the most-likely kind of log listing: the complete list,
+        a FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
 
         full_url_or_path = self.__url_or_path
@@ -398,7 +401,8 @@ class CommonClient(object):
 
     def diff_summary(self, old, new, rel_path=None):
         """
-        Provides a summarized output of a diff between two revisions (file, change type, file type)
+        Provides a summarized output of a diff between two revisions
+        (file, change type, file type)
         """
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
