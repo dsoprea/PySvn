@@ -424,11 +424,10 @@ class CommonClient(object):
             ['--old', '{0}@{1}'.format(full_url_or_path, old),
              '--new', '{0}@{1}'.format(full_url_or_path, new)],
             combine=True)
-        file_to_diff = \
-            {
-                i.split('==')[0].strip().strip('/'): i.split('==')[-1].strip('=').strip()
-                for i in filter(None, diff_result.split('Index: '))
-            }
+        file_to_diff = {}
+        for non_empty_diff in filter(None, diff_result.split('Index: ')):
+            split_diff = non_empty_diff.split('==')
+            file_to_diff[split_diff[0].strip().strip('/')] = split_diff[-1].strip('=').strip()
         diff_summaries = self.diff_summary(old, new, rel_path)
         for diff_summary in diff_summaries:
             diff_summary['diff'] = \
