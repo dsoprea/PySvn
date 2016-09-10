@@ -6,10 +6,10 @@ import svn
 _APP_PATH = os.path.dirname(svn.__file__)
 
 with open(os.path.join(_APP_PATH, 'resources', 'README.rst')) as f:
-      long_description = f.read()
+    long_description = f.read()
 
 with open(os.path.join(_APP_PATH, 'resources', 'requirements.txt')) as f:
-      install_requires = list(map(lambda s: s.strip(), f.readlines()))
+    install_requires = list(map(lambda s: s.strip(), f.readlines()))
 
 setuptools.setup(
     name='svn',

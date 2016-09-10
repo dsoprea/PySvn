@@ -54,26 +54,26 @@ pprint.pprint(properties)
 
 sys.exit(0)
 
-#print(list(r.list(extended=True)))
+# print(list(r.list(extended=True)))
 
 l = r.list_recursive(rel_path=None, yield_dirs=False, path_filter_cb=None)
 l = list(l)
 
 pprint.pprint(l)
 
-#print(r.cat('sfs/package/DEBIAN/postinst'))
+# print(r.cat('sfs/package/DEBIAN/postinst'))
 
 #import dateutil.parser
 #import datetime
 #
 #from_ = datetime.datetime.now().replace(day=21)
-#for e in r.log_default(timestamp_from_dt=from_):
+# for e in r.log_default(timestamp_from_dt=from_):
 #    print(e)
 #
-#sys.exit(0)
+# sys.exit(0)
 
 #i = r.info()
-#print(i)
+# print(i)
 sys.exit(0)
 
 print(i.attrib['kind'])
@@ -91,13 +91,13 @@ commit = i.find('commit')
 print(commit.find('author').text)
 print(commit.find('date').text)
 
-#print(r.info().items())
-#print(r.info().getchildren())
+# print(r.info().items())
+# print(r.info().getchildren())
 
 #import pprint
-#pprint.pprint(r.info())
+# pprint.pprint(r.info())
 
-#r.checkout('/tmp/checkout_2')
-#r.export('/tmp/export_1')
+# r.checkout('/tmp/checkout_2')
+# r.export('/tmp/export_1')
 
 #l = svn.local.LocalClient('/Users/dustin/development/php/adam2')
