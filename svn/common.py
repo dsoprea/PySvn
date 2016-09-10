@@ -25,7 +25,7 @@ class CommonClient(object):
 
     def run_command(self, subcommand, args, success_code=0,
                     return_stderr=False, combine=False, return_binary=False):
-        # TODO(dustin): return_stderr is no longer implemented.
+# TODO(dustin): return_stderr is no longer implemented.
         cmd = [self.__svn_filepath, '--non-interactive']
 
         if self.__trust_cert:
@@ -106,8 +106,8 @@ class CommonClient(object):
                    len(relative_url.text) \
                 else None,
 
-            # TODO(dustin): These are just for backwards-compatibility. Use the ones added
-            #               below.
+# TODO(dustin): These are just for backwards-compatibility. Use the ones added
+#               below.
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
@@ -141,7 +141,7 @@ class CommonClient(object):
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
-        # TODO(dustin): Should we be casting the integers?
+# TODO(dustin): Should we be casting the integers?
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
