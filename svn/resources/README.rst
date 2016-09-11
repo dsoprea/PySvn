@@ -244,9 +244,9 @@ diff_summary(start_revision,  end_revision)
 
 Summarizes all the diff between start and end revision id ::
 
-    import svn.common
+    import svn.remote
 
-    l = svn.common.CommonClient('http://svn.apache.org/repos/asf', 'url')
+    l = svn.remote.RemoteClient('http://svn.apache.org/repos/asf')
     print l.diff_summary(1760022, 1760023)
 
     # [{'item': 'modified',
