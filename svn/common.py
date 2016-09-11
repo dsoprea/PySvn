@@ -24,9 +24,9 @@ class CommonClient(object):
 
         self.__type = type_
 
+# TODO(dustin): return_stderr is no longer implemented.
     def run_command(self, subcommand, args, success_code=0,
                     return_stderr=False, combine=False, return_binary=False):
-        # TODO(dustin): return_stderr is no longer implemented.
         cmd = [self.__svn_filepath, '--non-interactive']
 
         if self.__trust_cert:
@@ -79,6 +79,16 @@ class CommonClient(object):
 
         return d
 
+    def __element_text(self, element):
+        """Return ElementTree text or None
+        :param xml.etree.ElementTree element: ElementTree to get text.
+
+        :return str|None: Element text
+        """
+        if element is not None and len(element.text):
+            return element.text
+        return None
+
     def info(self, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
@@ -103,10 +113,7 @@ class CommonClient(object):
         info = {
             'url': root.find('entry/url').text,
 
-            'relative_url': relative_url.text
-            if relative_url is not None and
-            len(relative_url.text)
-            else None,
+            'relative_url': self.__element_text(relative_url),
 
             # TODO(dustin): These are just for backwards-compatibility.
             #               Use the ones added below.
@@ -118,22 +125,11 @@ class CommonClient(object):
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
 
-            'wc-info/wcroot-abspath': wcroot_abspath.text \
-            if wcroot_abspath is not None and \
-            len(wcroot_abspath.text) \
-            else None,
-            'wc-info/schedule': wcinfo_schedule.text \
-            if wcinfo_schedule is not None and \
-            len(wcinfo_schedule.text) \
-            else None,
-            'wc-info/depth': wcinfo_depth.text \
-            if wcinfo_depth is not None and \
-            len(wcinfo_depth.text) \
-            else None,
-            'commit/author': author.text \
-            if author is not None and \
-            len(author.text) \
-            else None,
+            'wc-info/wcroot-abspath': self.__element_text(wcroot_abspath),
+            'wc-info/schedule': self.__element_text(wcinfo_schedule),
+            'wc-info/depth': self.__element_text(wcinfo_depth),
+            'commit/author': self.__element_text(author),
+
             'commit/date': dateutil.parser.parse(
                 root.find('entry/commit/date').text),
             'commit#revision': int(commit_attr['revision']),
@@ -189,8 +185,7 @@ class CommonClient(object):
         for property_name in property_names:
             result = self.run_command(
                 'propget',
-                ['--xml', '{0}'.format(property_name),
-                 full_url_or_path, ],
+                ['--xml', property_name, full_url_or_path, ],
                 combine=True)
             root = xml.etree.ElementTree.fromstring(result)
             target_elem = root.find('target')
@@ -390,8 +385,7 @@ class CommonClient(object):
                         q.append(next_rel_path)
 
                 if entry['is_directory'] is False or yield_dirs is True:
-                    current_rel_path_phrase = \
-                        current_rel_path \
+                    current_rel_path_phrase = current_rel_path \
                         if current_rel_path is not None \
                         else ''
 
@@ -414,8 +408,10 @@ class CommonClient(object):
         root = xml.etree.ElementTree.fromstring(result)
         diff = []
         for element in root.findall('paths/path'):
-            diff.append({'path': element.text, 'item': element.attrib[
-                        'item'], 'kind': element.attrib['kind']})
+            diff.append({
+                'path': element.text,
+                'item': element.attrib['item'],
+                'kind': element.attrib['kind']})
         return diff
 
     @property
