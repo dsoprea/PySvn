@@ -39,7 +39,19 @@ class TestCommonClient(unittest.TestCase):
         :return:
         """
         actual_answer = CommonClient(self.test_svn_url, 'url').diff(self.test_start_revision, self.test_end_revision)
-        self.assertEqual(actual_answer, diff)
+        for index, individual_diff in enumerate(actual_answer):
+            for diff_key in individual_diff:
+                if diff_key == 'diff':
+                    self.assertTrue('sling/trunk/bundles/extensions/models/pom.xml\t(revision 0)' in
+                                    individual_diff[diff_key] or 'sling/trunk/pom.xml' in individual_diff[diff_key])
+                    self.assertTrue('artifactId>org.apache.sling.models.reactor</artifactId>\n+' in
+                                    individual_diff[diff_key] or '<module>bundles/extensions/models</module>' in
+                                    individual_diff[diff_key])
+                    self.assertTrue('svn:mime-type\n## -0,0 +1 ' in individual_diff[diff_key] or
+                                    ' <module>bundles/extensions/models/validation-impl</module>'
+                                    in individual_diff[diff_key])
+                else:
+                    self.assertEqual(individual_diff[diff_key], diff[index][diff_key])
 
 if __name__ == '__main__':
     unittest.main()
