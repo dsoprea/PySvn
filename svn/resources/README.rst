@@ -16,6 +16,8 @@ Functions currently implemented:
 - checkout
 - export
 - cat
+- diff
+- diff_summary
 
 **You are more than welcome to submit pull-requests to add more support for additional subcommands.**
 
@@ -236,6 +238,28 @@ List all entries at and beneath the root or given relative-path::
     # 'name': 'cc',
     # 'size': 0,
     # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
+
+diff_summary(start_revision,  end_revision)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Summarizes all the diff between start and end revision id ::
+
+    import svn.remote
+
+    l = svn.remote.RemoteClient('http://svn.apache.org/repos/asf')
+    print l.diff_summary(1760022, 1760023)
+
+    # [{'item': 'modified',
+    #  'kind': 'file',
+    #  'path': 'http://svn.apache.org/repos/asf/sling/trunk/pom.xml'},
+    # {'item': 'added',
+    #  'kind': 'file',
+    #  'path': 'http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml'}]
+
+diff(start_revision,  end_revision)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Finds all the diff between start and end revision id. Here another key of 'diff' is added which shows the diff of files.
 
 .. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
    :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !
