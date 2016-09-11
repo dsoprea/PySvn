@@ -42,7 +42,7 @@ class CommonClient(object):
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             env={'LANG': 'en_US.utf8'})
+                             env={'LANG': 'en_US.UTF-8'})
 
         stdout = p.stdout.read()
         r = p.wait()
