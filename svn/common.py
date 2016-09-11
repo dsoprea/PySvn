@@ -172,8 +172,6 @@ class CommonClient(object):
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
-        property_list = []
-
         result = self.run_command(
             'proplist',
             ['--xml', full_url_or_path],
