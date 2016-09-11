@@ -1,5 +1,7 @@
 |donate|
 
+|Build\_Status|
+
 ------------
 Introduction
 ------------
@@ -264,3 +266,5 @@ Finds all the diff between start and end revision id. Here another key of 'diff'
 .. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
    :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !
    :target: https://pledgie.com/campaigns/31718
+.. |Build_Status| image:: https://travis-ci.org/dsoprea/PySvn.svg?branch=master
+   :target: https://travis-ci.org/dsoprea/PySvn

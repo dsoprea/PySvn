@@ -39,7 +39,9 @@ class TestCommonClient(unittest.TestCase):
         :return:
         """
         actual_answer = CommonClient(self.test_svn_url, 'url').diff(self.test_start_revision, self.test_end_revision)
-        self.assertEqual(actual_answer, diff)
+        for index, individual_diff in enumerate(actual_answer):
+            for diff_key in individual_diff:
+                self.assertTrue(individual_diff[diff_key] == diff[index][diff_key])
 
 if __name__ == '__main__':
     unittest.main()
