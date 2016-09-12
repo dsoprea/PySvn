@@ -11,6 +11,7 @@ _logger = logging.getLogger('svn')
 
 
 class CommonClient(object):
+
     def __init__(self, url_or_path, type_, *args, **kwargs):
         self.__url_or_path = url_or_path
         self.__username = kwargs.pop('username', None)
@@ -23,9 +24,9 @@ class CommonClient(object):
 
         self.__type = type_
 
+# TODO(dustin): return_stderr is no longer implemented.
     def run_command(self, subcommand, args, success_code=0,
                     return_stderr=False, combine=False, return_binary=False):
-# TODO(dustin): return_stderr is no longer implemented.
         cmd = [self.__svn_filepath, '--non-interactive']
 
         if self.__trust_cert:
@@ -78,6 +79,16 @@ class CommonClient(object):
 
         return d
 
+    def __element_text(self, element):
+        """Return ElementTree text or None
+        :param xml.etree.ElementTree element: ElementTree to get text.
+
+        :return str|None: Element text
+        """
+        if element is not None and len(element.text):
+            return element.text
+        return None
+
     def info(self, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
@@ -102,10 +113,7 @@ class CommonClient(object):
         info = {
             'url': root.find('entry/url').text,
 
-            'relative_url': relative_url.text \
-                if relative_url is not None and \
-                   len(relative_url.text) \
-                else None,
+            'relative_url': self.__element_text(relative_url),
 
 # TODO(dustin): These are just for backwards-compatibility. Use the ones added
 #               below.
@@ -117,22 +125,11 @@ class CommonClient(object):
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
 
-            'wc-info/wcroot-abspath': wcroot_abspath.text \
-                if wcroot_abspath is not None and \
-                   len(wcroot_abspath.text) \
-                else None,
-            'wc-info/schedule': wcinfo_schedule.text \
-                if wcinfo_schedule is not None and \
-                   len(wcinfo_schedule.text) \
-                else None,
-            'wc-info/depth': wcinfo_depth.text \
-                if wcinfo_depth is not None and \
-                   len(wcinfo_depth.text) \
-                else None,
-            'commit/author': author.text \
-                if author is not None and \
-                   len(author.text) \
-                else None,
+            'wc-info/wcroot-abspath': self.__element_text(wcroot_abspath),
+            'wc-info/schedule': self.__element_text(wcinfo_schedule),
+            'wc-info/depth': self.__element_text(wcinfo_depth),
+            'commit/author': self.__element_text(author),
+
             'commit/date': dateutil.parser.parse(
                 root.find('entry/commit/date').text),
             'commit#revision': int(commit_attr['revision']),
@@ -159,16 +156,17 @@ class CommonClient(object):
         return info
 
     def properties(self, rel_path=None):
-        """ Return a dictionary with all svn-properties associated with a relative path
-        :param rel_path: relative path in the svn repo to query the properties from
-        :returns: a dictionary with the property name as key and the content as value
+        """ Return a dictionary with all svn-properties associated with a
+            relative path.
+        :param rel_path: relative path in the svn repo to query the
+                         properties from
+        :returns: a dictionary with the property name as key and the content
+                  as value
         """
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
-
-        property_list = []
 
         result = self.run_command(
             'proplist',
@@ -178,7 +176,8 @@ class CommonClient(object):
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
         target_elem = root.find('target')
-        property_names = [p.attrib["name"] for p in target_elem.findall('property')]
+        property_names = [p.attrib["name"]
+                          for p in target_elem.findall('property')]
 
         # now query the content of each propery
         property_dict = {}
@@ -186,7 +185,7 @@ class CommonClient(object):
         for property_name in property_names:
             result = self.run_command(
                 'propget',
-                ['--xml', '{0}'.format(property_name), full_url_or_path, ],
+                ['--xml', property_name, full_url_or_path, ],
                 combine=True)
             root = xml.etree.ElementTree.fromstring(result)
             target_elem = root.find('target')
@@ -205,8 +204,8 @@ class CommonClient(object):
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
                     limit=None, rel_filepath=None, stop_on_copy=False,
                     revision_from=None, revision_to=None, changelist=False):
-        """Allow for the most-likely kind of log listing: the complete list, a
-        FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
+        """Allow for the most-likely kind of log listing: the complete list,
+        a FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
 
         full_url_or_path = self.__url_or_path
@@ -386,16 +385,16 @@ class CommonClient(object):
                         q.append(next_rel_path)
 
                 if entry['is_directory'] is False or yield_dirs is True:
-                    current_rel_path_phrase = \
-                        current_rel_path \
-                            if current_rel_path is not None \
-                            else ''
+                    current_rel_path_phrase = current_rel_path \
+                        if current_rel_path is not None \
+                        else ''
 
                     yield (current_rel_path_phrase, entry)
 
     def diff_summary(self, old, new, rel_path=None):
         """
-        Provides a summarized output of a diff between two revisions (file, change type, file type)
+        Provides a summarized output of a diff between two revisions
+        (file, change type, file type)
         """
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
@@ -409,7 +408,10 @@ class CommonClient(object):
         root = xml.etree.ElementTree.fromstring(result)
         diff = []
         for element in root.findall('paths/path'):
-            diff.append({'path': element.text, 'item': element.attrib['item'], 'kind': element.attrib['kind']})
+            diff.append({
+                'path': element.text,
+                'item': element.attrib['item'],
+                'kind': element.attrib['kind']})
         return diff
 
     def diff(self, old, new, rel_path=None):
@@ -438,12 +440,15 @@ class CommonClient(object):
     @property
     def url(self):
         if self.__type != svn.constants.LT_URL:
-            raise EnvironmentError("Only the remote-client has access to the URL.")
+            raise EnvironmentError(
+                "Only the remote-client has access to the URL.")
 
         return self.__url_or_path
 
     @property
     def path(self):
         if self.__type != svn.constants.LT_PATH:
-            raise EnvironmentError("Only the local-client has access to the path.")
+            raise EnvironmentError(
+                "Only the local-client has access to the path.")
+
         return self.__url_or_path
