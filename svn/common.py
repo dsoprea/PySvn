@@ -43,7 +43,7 @@ class CommonClient(object):
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             env={'LANG': 'en_US.utf8'})
+                             env={'LANG': 'en_US.UTF-8'})
 
         stdout = p.stdout.read()
         r = p.wait()
@@ -115,8 +115,8 @@ class CommonClient(object):
 
             'relative_url': self.__element_text(relative_url),
 
-            # TODO(dustin): These are just for backwards-compatibility.
-            #               Use the ones added below.
+# TODO(dustin): These are just for backwards-compatibility. Use the ones added
+#               below.
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
@@ -413,6 +413,29 @@ class CommonClient(object):
                 'item': element.attrib['item'],
                 'kind': element.attrib['kind']})
         return diff
+
+    def diff(self, old, new, rel_path=None):
+        """
+        Provides output of a diff between two revisions (file, change type,
+         file type)
+        """
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        diff_result = self.run_command(
+            'diff',
+            ['--old', '{0}@{1}'.format(full_url_or_path, old),
+             '--new', '{0}@{1}'.format(full_url_or_path, new)],
+            combine=True)
+        file_to_diff = {}
+        for non_empty_diff in filter(None, diff_result.split('Index: ')):
+            split_diff = non_empty_diff.split('==')
+            file_to_diff[split_diff[0].strip().strip('/')] = split_diff[-1].strip('=').strip()
+        diff_summaries = self.diff_summary(old, new, rel_path)
+        for diff_summary in diff_summaries:
+            diff_summary['diff'] = \
+                file_to_diff[diff_summary['path'].split(full_url_or_path)[-1].strip('/')]
+        return diff_summaries
 
     @property
     def url(self):
