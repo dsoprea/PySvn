@@ -3,7 +3,7 @@ __author__ = 'tusharmakkar08'
 import unittest
 
 from resources.expected_output import diff_summary, diff
-from svn.common import CommonClient
+from svn.common import CommonClient, SvnException
 
 
 class TestCommonClient(unittest.TestCase):
@@ -18,10 +18,10 @@ class TestCommonClient(unittest.TestCase):
 
     def test_error_client_formation(self):
         """
-        Testing Value error while client formation
+        Testing SvnException error while client formation
         :return:
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(SvnException):
             CommonClient(self.test_svn_url, 'random')
 
     def test_diff_summary(self):
