@@ -10,6 +10,14 @@ import svn.constants
 _logger = logging.getLogger('svn')
 
 
+class SvnCommandError(ValueError):
+    """Raised when the SVN CLI command returns an error code.
+
+    Subclass of ValuError for backward compatibility.
+    """
+    pass
+
+
 class CommonClient(object):
 
     def __init__(self, url_or_path, type_, *args, **kwargs):
@@ -49,8 +57,8 @@ class CommonClient(object):
         r = p.wait()
 
         if r != success_code:
-            raise ValueError("Command failed with (%d): %s\n%s" %
-                             (p.returncode, cmd, stdout))
+            raise SvnCommandError("Command failed with ({}): {}\n{}}".format(
+                                  (p.returncode, cmd, stdout)))
 
         if return_binary is True:
             return stdout
