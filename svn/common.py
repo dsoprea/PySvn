@@ -33,7 +33,7 @@ class CommonClient(object):
 
         self.__type = type_
 
-    # TODO(dustin): return_stderr is no longer implemented.
+# TODO(dustin): return_stderr is no longer implemented.
     def run_command(self, subcommand, args, success_code=0,
                     return_stderr=False, combine=False, return_binary=False):
         cmd = [self.__svn_filepath, '--non-interactive']
@@ -124,8 +124,8 @@ class CommonClient(object):
 
             'relative_url': self.__element_text(relative_url),
 
-            # TODO(dustin): These are just for backwards-compatibility. Use the ones added
-            #               below.
+# TODO(dustin): These are just for backwards-compatibility. Use the ones added
+#               below.
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
