@@ -9,3 +9,5 @@
 /build/
 *.pyc
 venv*
+*.svn
+*.idea
