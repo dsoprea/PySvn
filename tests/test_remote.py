@@ -5,6 +5,7 @@ import shutil
 import unittest
 
 from svn.remote import RemoteClient
+from svn.common import SvnException
 
 
 class TestRemoteClient(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestRemoteClient(unittest.TestCase):
         Testing Value error while client formation
         :return:
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(SvnException):
             RemoteClient(self.test_fake_url).checkout('.')
 
     def test_checkout(self):

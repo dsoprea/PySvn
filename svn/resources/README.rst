@@ -52,6 +52,12 @@ RemoteClient
 
 *RemoteClient* allows access to a remote repository.
 
+SvnException
+============
+
+*SvnException* is raised whenever there is an issue with the svn repository. We are no longer supporting catching
+*ValueError*.
+
 checkout(path)
 ^^^^^^^^^^^^^^
 

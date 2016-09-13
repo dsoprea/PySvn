@@ -10,16 +10,17 @@ import svn.constants
 _logger = logging.getLogger('svn')
 
 
-class SvnCommandError(ValueError):
-    """Raised when the SVN CLI command returns an error code.
-
-    Subclass of ValuError for backward compatibility.
+class SvnException(Exception):
     """
-    pass
+    Raised when the SVN CLI command returns an error code.
+    """
+
+    def __init__(self, message):
+        self.message = message
+        Exception.__init__(self, message)
 
 
 class CommonClient(object):
-
     def __init__(self, url_or_path, type_, *args, **kwargs):
         self.__url_or_path = url_or_path
         self.__username = kwargs.pop('username', None)
@@ -28,7 +29,7 @@ class CommonClient(object):
         self.__trust_cert = kwargs.pop('trust_cert', None)
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
-            raise ValueError("Type is invalid: %s" % (type_))
+            raise SvnException("Type is invalid: %s" % type_)
 
         self.__type = type_
 
@@ -57,8 +58,8 @@ class CommonClient(object):
         r = p.wait()
 
         if r != success_code:
-            raise SvnCommandError("Command failed with ({}): {}\n{}}".format(
-                                  (p.returncode, cmd, stdout)))
+            raise SvnException("Command failed with (%s): %s\n%s".format(
+                (p.returncode, cmd, stdout)))
 
         if return_binary is True:
             return stdout
@@ -147,7 +148,7 @@ class CommonClient(object):
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
-# TODO(dustin): Should we be casting the integers?
+        # TODO(dustin): Should we be casting the integers?
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
