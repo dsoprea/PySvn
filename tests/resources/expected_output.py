@@ -68,3 +68,6 @@ diff = [{'path': 'http://svn.apache.org/repos/asf/sling/trunk/pom.xml', 'kind': 
                  'LastChangedRevision LastChangedBy HeadURL Id Author\n\\ No newline at end of property\nAdded: '
                  'svn:eol-style\n## -0,0 +1 ##\n+native\n\\ No newline at end of property',
          'item': 'added'}]
+cat = """This is an as-yet incomplete update for Abdera. All of the base dependencies
+have been updated and a broad range of significant changes have been made to
+the overall code structure, many of the apis and implementation detail. """
