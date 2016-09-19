@@ -2,6 +2,7 @@ __author__ = 'tusharmakkar08'
 
 import os
 import unittest
+import shutil
 
 from resources.expected_output import diff_summary, diff, cat
 from svn.common import CommonClient, SvnException
@@ -18,8 +19,8 @@ class TestCommonClient(unittest.TestCase):
         self.test_end_revision = 1760023
 
     def tearDown(self):
-        if os.path.exists('README'):
-            os.remove('README')
+        if os.path.exists('CHANGES'):
+            shutil.rmtree('CHANGES')
 
     def test_error_client_formation(self):
         """
@@ -94,8 +95,9 @@ class TestCommonClient(unittest.TestCase):
         Checking export
         :return:
         """
-        CommonClient(self.test_svn_url+'/abdera/abdera2/README', 'url').export(to_path='', revision=1761404)
-        self.assertTrue(os.path.exists('README'))
+        CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
+                                                                                       revision=1761404)
+        self.assertTrue(os.path.exists('CHANGES'))
 
 if __name__ == '__main__':
     unittest.main()
