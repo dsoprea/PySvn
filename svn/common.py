@@ -300,13 +300,14 @@ class CommonClient(object):
 
             yield c(**log_entry)
 
-    def export(self, to_path, revision=None):
+    def export(self, to_path, revision=None, force=False):
         cmd = []
 
         if revision is not None:
             cmd += ['-r', str(revision)]
 
         cmd += [self.__url_or_path, to_path]
+        cmd.append('--force') if force else None
 
         self.run_command('export', cmd)
 

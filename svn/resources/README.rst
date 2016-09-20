@@ -142,8 +142,8 @@ count::
     #LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
     #LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
 
-export(to_path, revision=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+export(to_path, revision=None, force=False)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Checkout the tree without embedding an meta-information::
 
@@ -151,6 +151,8 @@ Checkout the tree without embedding an meta-information::
 
     r = svn.remote.RemoteClient('file:///tmp/test_repo')
     r.export('/tmp/test_export')
+
+We can also use `force` option to force the svn export.
 
 list(extended=False, rel_path=None)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
