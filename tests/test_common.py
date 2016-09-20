@@ -101,5 +101,23 @@ class TestCommonClient(unittest.TestCase):
                                                                                        revision=1761404)
         self.assertTrue(os.path.exists('CHANGES'))
 
+    def test_force_export(self):
+        """
+        Checking export with force option
+        :return:
+        """
+        CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
+                                                                                       revision=1761404)
+        self.assertTrue(os.path.exists('CHANGES'))
+        with self.assertRaises(SvnException):
+            CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
+                                                                                           revision=1761404)
+        try:
+            CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
+                                                                                           revision=1761404,
+                                                                                           force=True)
+        except SvnException:
+            self.fail("Svn Exception raised with Force also")
+
 if __name__ == '__main__':
     unittest.main()
