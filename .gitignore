@@ -11,3 +11,4 @@
 venv*
 *.svn
 *.idea
+.coverage
