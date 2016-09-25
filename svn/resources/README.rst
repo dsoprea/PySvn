@@ -1,6 +1,8 @@
 |donate|
 
 |Build\_Status|
+|Coverage\_Status|
+
 
 ------------
 Introduction
@@ -276,3 +278,5 @@ Finds all the diff between start and end revision id. Here another key of 'diff'
    :target: https://pledgie.com/campaigns/31718
 .. |Build_Status| image:: https://travis-ci.org/dsoprea/PySvn.svg?branch=master
    :target: https://travis-ci.org/dsoprea/PySvn
+.. |Coverage_Status| image:: https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master
+   :target: https://coveralls.io/github/dsoprea/PySvn?branch=master
