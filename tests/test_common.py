@@ -4,7 +4,7 @@ import os
 import unittest
 import shutil
 
-from resources.expected_output import diff_summary, diff_summary_2, cat
+from tests.resources.expected_output import diff_summary, diff_summary_2, cat
 from svn.common import CommonClient, SvnException
 
 
@@ -63,7 +63,7 @@ class TestCommonClient(unittest.TestCase):
         :return:
         """
         actual_answer = CommonClient(self.test_svn_url, 'url').list()
-        self.assertEqual(actual_answer.next(), 'abdera/')
+        self.assertEqual(next(actual_answer), 'abdera/')
 
     def test_info(self):
         """
@@ -82,7 +82,7 @@ class TestCommonClient(unittest.TestCase):
         :return:
         """
         actual_answer = CommonClient(self.test_svn_url, 'url').log_default(revision_from=1761404, revision_to=1761403)
-        self.assertEqual(actual_answer.next().author, 'sseifert')
+        self.assertEqual(next(actual_answer).author, 'sseifert')
 
     def test_cat(self):
         """
@@ -90,7 +90,7 @@ class TestCommonClient(unittest.TestCase):
         :return:
         """
         actual_answer = CommonClient(self.test_svn_url, 'url').cat('abdera/abdera2/README', revision=1761404)
-        self.assertEqual(cat, actual_answer)
+        self.assertEqual(cat, actual_answer.decode())
 
     def test_export(self):
         """

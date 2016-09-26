@@ -438,7 +438,7 @@ class CommonClient(object):
              '--new', '{0}@{1}'.format(full_url_or_path, new)],
             combine=True)
         file_to_diff = {}
-        for non_empty_diff in filter(None, diff_result.split('Index: ')):
+        for non_empty_diff in filter(None, diff_result.decode('utf8').split('Index: ')):
             split_diff = non_empty_diff.split('==')
             file_to_diff[split_diff[0].strip().strip('/')] = split_diff[-1].strip('=').strip()
         diff_summaries = self.diff_summary(old, new, rel_path)
