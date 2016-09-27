@@ -54,8 +54,9 @@ class CommonClient(object):
                              stderr=subprocess.STDOUT,
                              env={'LANG': 'en_US.UTF-8'})
 
-        stdout = p.stdout.read()
         r = p.wait()
+        stdout = p.stdout.read()
+        p.stdout.close()
 
         if r != success_code:
             raise SvnException("Command failed with (%s): %s\n%s".format(
