@@ -30,5 +30,4 @@ setuptools.setup(
                 'resources/requirements.txt'],
     },
     install_requires=install_requires,
-    test_suite='tests',
 )
