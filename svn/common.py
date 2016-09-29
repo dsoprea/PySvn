@@ -44,6 +44,7 @@ class CommonClient(object):
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
             cmd += ['--password', self.__password]
+            cmd += ['--no-auth-cache']
 
         cmd += [subcommand] + args
 
