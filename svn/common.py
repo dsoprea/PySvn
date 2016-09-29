@@ -56,6 +56,7 @@ class CommonClient(object):
 
         stdout = p.stdout.read()
         r = p.wait()
+        p.stdout.close()
 
         if r != success_code:
             raise SvnException("Command failed with (%s): %s\n%s".format(
