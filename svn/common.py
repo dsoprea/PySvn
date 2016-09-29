@@ -1,5 +1,4 @@
 import collections
-import copy
 import logging
 import os
 import subprocess
@@ -51,7 +50,7 @@ class CommonClient(object):
 
         _logger.debug("RUN: %s" % (cmd,))
 
-        environment_variables = copy.deepcopy(os.environ)
+        environment_variables = os.environ.copy()
         environment_variables['LANG'] = 'en_US.UTF-8'
 
         p = subprocess.Popen(cmd,
