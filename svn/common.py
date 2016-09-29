@@ -1,9 +1,10 @@
+import collections
+import logging
 import os
 import subprocess
-import logging
-import dateutil.parser
-import collections
 import xml.etree.ElementTree
+
+import dateutil.parser
 
 import svn.constants
 
@@ -50,10 +51,13 @@ class CommonClient(object):
 
         _logger.debug("RUN: %s" % (cmd,))
 
+        environment_variables = os.environ.copy()
+        environment_variables['LANG'] = 'en_US.UTF-8'
+
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             env={'LANG': 'en_US.UTF-8'})
+                             env=environment_variables)
 
         stdout = p.stdout.read()
         r = p.wait()
