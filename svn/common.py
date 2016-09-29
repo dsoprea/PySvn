@@ -49,10 +49,13 @@ class CommonClient(object):
 
         _logger.debug("RUN: %s" % (cmd,))
 
+        environment_variables = os.environ
+        environment_variables['LANG'] = 'en_US.UTF-8'
+
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             env={'LANG': 'en_US.UTF-8'})
+                             env=environment_variables)
 
         stdout = p.stdout.read()
         r = p.wait()
