@@ -64,8 +64,8 @@ class CommonClient(object):
         p.stdout.close()
 
         if r != success_code:
-            raise SvnException("Command failed with (%s): %s\n%s".format(
-                (p.returncode, cmd, stdout)))
+            raise SvnException("Command failed with ({}): {}\n{}".format(
+                p.returncode, cmd, stdout))
 
         if return_binary is True:
             return stdout
