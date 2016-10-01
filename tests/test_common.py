@@ -7,6 +7,9 @@ import shutil
 from tests.resources.expected_output import diff_summary, diff_summary_2, cat
 from svn.common import CommonClient, SvnException
 
+# TODO(dustin): We need to refactor this to depend on a test SVN tree that's 
+#               stored within the project.
+
 
 class TestCommonClient(unittest.TestCase):
     """
