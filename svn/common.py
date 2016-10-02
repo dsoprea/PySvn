@@ -22,32 +22,13 @@ class SvnException(Exception):
 
 
 class CommonClient(object):
-    """Subversion client
-
-    Parameters
-    ----------
-    url_or_path : str
-        Repository URL or path
-    type_ : str
-        One of ``svn.constants.LT_URL`` or ``svn.constants.LT_PATH``
-    username : str, optional
-        User name to use
-    password : str, optional
-        Password to use
-    svn_filepath : str, optional
-        Path to svn command
-    trust_cert : bool, optional
-        If client should trust server certificate for unknown authority
-    env : dict, optional
-        Environment variables added to ``svn`` process environment
-    """
     def __init__(self, url_or_path, type_, *args, **kwargs):
         self.__url_or_path = url_or_path
         self.__username = kwargs.pop('username', None)
         self.__password = kwargs.pop('password', None)
         self.__svn_filepath = kwargs.pop('svn_filepath', 'svn')
         self.__trust_cert = kwargs.pop('trust_cert', None)
-        self._env = kwargs.get('env', {})
+        self.__env = kwargs.get('env', {})
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise SvnException("Type is invalid: %s" % type_)
@@ -73,7 +54,7 @@ class CommonClient(object):
 
         environment_variables = os.environ.copy()
         environment_variables['LANG'] = 'en_US.UTF-8'
-        environment_variables.update(self._env)
+        environment_variables.update(self.__env)
 
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
