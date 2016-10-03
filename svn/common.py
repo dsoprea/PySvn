@@ -28,6 +28,7 @@ class CommonClient(object):
         self.__password = kwargs.pop('password', None)
         self.__svn_filepath = kwargs.pop('svn_filepath', 'svn')
         self.__trust_cert = kwargs.pop('trust_cert', None)
+        self.__env = kwargs.get('env', {})
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise SvnException("Type is invalid: %s" % type_)
@@ -52,6 +53,7 @@ class CommonClient(object):
         _logger.debug("RUN: %s" % (cmd,))
 
         environment_variables = os.environ.copy()
+        environment_variables.update(self.__env)
         environment_variables['LANG'] = 'en_US.UTF-8'
 
         p = subprocess.Popen(cmd,
