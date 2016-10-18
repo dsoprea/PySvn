@@ -23,8 +23,8 @@ _STATUS_ENTRY = \
 
 
 class CommonClient(svn.common_base.CommonBase):
-    def __init__(self, url_or_path, type_, *args, username=None, password=None, 
-                 svn_filepath='svn', trust_cert=None, env={}, **kwargs):
+    def __init__(self, url_or_path, type_, username=None, password=None, 
+                 svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
         super(CommonClient, self).__init__(*args, **kwargs)
 
         self.__url_or_path = url_or_path
