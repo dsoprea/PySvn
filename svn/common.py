@@ -7,37 +7,30 @@ import xml.etree.ElementTree
 import dateutil.parser
 
 import svn.constants
+import svn.exception
+import svn.common_base
 
-_logger = logging.getLogger('svn')
-
-
-class SvnException(Exception):
-    """
-    Raised when the SVN CLI command returns an error code.
-    """
-
-    def __init__(self, message):
-        self.message = message
-        Exception.__init__(self, message)
+_LOGGER = logging.getLogger(__name__)
 
 
-class CommonClient(object):
-    def __init__(self, url_or_path, type_, *args, **kwargs):
+class CommonClient(svn.common_base.CommonBase):
+    def __init__(self, url_or_path, type_, *args, username=None, password=None, 
+                 svn_filepath='svn', trust_cert=None, env={}, **kwargs):
+        super(CommonClient, self).__init__(*args, **kwargs)
+
         self.__url_or_path = url_or_path
-        self.__username = kwargs.pop('username', None)
-        self.__password = kwargs.pop('password', None)
-        self.__svn_filepath = kwargs.pop('svn_filepath', 'svn')
-        self.__trust_cert = kwargs.pop('trust_cert', None)
-        self.__env = kwargs.get('env', {})
+        self.__username = username
+        self.__password = password
+        self.__svn_filepath = svn_filepath
+        self.__trust_cert = trust_cert
+        self.__env = env
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
-            raise SvnException("Type is invalid: %s" % type_)
+            raise svn.exception.SvnException("Type is invalid: {}".format(type_))
 
         self.__type = type_
 
-# TODO(dustin): return_stderr is no longer implemented.
-    def run_command(self, subcommand, args, success_code=0,
-                    return_stderr=False, combine=False, return_binary=False):
+    def run_command(self, subcommand, args, **kwargs):
         cmd = [self.__svn_filepath, '--non-interactive']
 
         if self.__trust_cert:
@@ -49,52 +42,7 @@ class CommonClient(object):
             cmd += ['--no-auth-cache']
 
         cmd += [subcommand] + args
-
-        _logger.debug("RUN: %s" % (cmd,))
-
-        environment_variables = os.environ.copy()
-        environment_variables.update(self.__env)
-        environment_variables['LANG'] = 'en_US.UTF-8'
-
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             env=environment_variables)
-
-        stdout = p.stdout.read()
-        r = p.wait()
-        p.stdout.close()
-
-        if r != success_code:
-            raise SvnException("Command failed with ({}): {}\n{}".format(
-                p.returncode, cmd, stdout))
-
-        if return_binary is True:
-            return stdout
-
-        if combine is True:
-            return stdout
-        else:
-            return stdout.decode().strip('\n').split('\n')
-
-    def rows_to_dict(self, rows, lc=True):
-        d = {}
-        for row in rows:
-            row = row.strip()
-            if not row:
-                continue
-
-            pivot = row.index(': ')
-
-            k = row[:pivot]
-            v = row[pivot + 2:]
-
-            if lc is True:
-                k = k.lower()
-
-            d[k] = v
-
-        return d
+        return self.external_command(cmd, environment=self.__env, **kwargs)
 
     def __element_text(self, element):
         """Return ElementTree text or None
@@ -104,6 +52,7 @@ class CommonClient(object):
         """
         if element is not None and len(element.text):
             return element.text
+
         return None
 
     def info(self, rel_path=None):
@@ -114,7 +63,7 @@ class CommonClient(object):
         result = self.run_command(
             'info',
             ['--xml', full_url_or_path],
-            combine=True)
+            do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
 
@@ -188,7 +137,7 @@ class CommonClient(object):
         result = self.run_command(
             'proplist',
             ['--xml', full_url_or_path],
-            combine=True)
+            do_combine=True)
 
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
@@ -203,7 +152,7 @@ class CommonClient(object):
             result = self.run_command(
                 'propget',
                 ['--xml', property_name, full_url_or_path, ],
-                combine=True)
+                do_combine=True)
             root = xml.etree.ElementTree.fromstring(result)
             target_elem = root.find('target')
             property_elem = target_elem.find('property')
@@ -274,7 +223,7 @@ class CommonClient(object):
         result = self.run_command(
             'log',
             args + ['--xml', full_url_or_path],
-            combine=True)
+            do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
         named_fields = ['date', 'msg', 'revision', 'author', 'changelist']
@@ -319,6 +268,42 @@ class CommonClient(object):
 
         self.run_command('export', cmd)
 
+    def status(self, rel_path=None):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        raw = self.run_command(
+            'status',
+            ['--xml', full_url_or_path],
+            do_combine=True)
+
+        root = xml.etree.ElementTree.fromstring(raw)
+
+        list_ = root.findall('target/entry')
+        for entry in list_:
+            entry_attr = entry.attrib
+            name = entry_attr['path']
+
+            wcstatus = entry.find('wc-status').text
+            wcstatus_attr = wcstatus.attrib
+
+            change_type_raw = wcstatus_attr['item']
+            change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
+
+            # This will be absent if the file is "unversioned". It'll be "-1" 
+            # if added but not committed.
+            revision = wcstatus_attr.get('revision')
+            if revision is not None:
+                revision = int(revision)
+
+            yield {
+                'name': name,
+                'type_raw_name': change_type_raw,
+                'type': change_type,
+                'revision': revision,
+            }
+
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
@@ -336,7 +321,7 @@ class CommonClient(object):
             raw = self.run_command(
                 'ls',
                 ['--xml', full_url_or_path],
-                combine=True)
+                do_combine=True)
 
             root = xml.etree.ElementTree.fromstring(raw)
 
@@ -422,7 +407,7 @@ class CommonClient(object):
             ['--old', '{0}@{1}'.format(full_url_or_path, old),
              '--new', '{0}@{1}'.format(full_url_or_path, new),
              '--summarize', '--xml'],
-            combine=True)
+            do_combine=True)
         root = xml.etree.ElementTree.fromstring(result)
         diff = []
         for element in root.findall('paths/path'):
@@ -444,7 +429,7 @@ class CommonClient(object):
             'diff',
             ['--old', '{0}@{1}'.format(full_url_or_path, old),
              '--new', '{0}@{1}'.format(full_url_or_path, new)],
-            combine=True)
+            do_combine=True)
         file_to_diff = {}
         for non_empty_diff in filter(None, diff_result.decode('utf8').split('Index: ')):
             split_diff = non_empty_diff.split('==')

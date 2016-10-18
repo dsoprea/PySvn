@@ -4,8 +4,8 @@ import os
 import shutil
 import unittest
 
-from svn.remote import RemoteClient
-from svn.common import SvnException
+import svn.exception
+import svn.remote
 
 
 class TestRemoteClient(unittest.TestCase):
@@ -28,16 +28,13 @@ class TestRemoteClient(unittest.TestCase):
         Testing Value error while client formation
         :return:
         """
-        with self.assertRaises(SvnException):
-            RemoteClient(self.test_fake_url).checkout('.')
+        with self.assertRaises(svn.exception.SvnException):
+            svn.remote.RemoteClient(self.test_fake_url).checkout('.')
 
     def test_checkout(self):
         """
         Testing checkout
         :return:
         """
-        RemoteClient(self.test_svn_url).checkout('trial')
+        svn.remote.RemoteClient(self.test_svn_url).checkout('trial')
         self.assertTrue(os.path.exists('trial'))
-
-if __name__ == '__main__':
-    unittest.main()
