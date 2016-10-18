@@ -12,6 +12,15 @@ import svn.common_base
 
 _LOGGER = logging.getLogger(__name__)
 
+_STATUS_ENTRY = \
+    collections.namedtuple(
+        '_STATUS_ENTRY', [
+            'name',
+            'type_raw_name',
+            'type',
+            'revision',
+        ])
+
 
 class CommonClient(svn.common_base.CommonBase):
     def __init__(self, url_or_path, type_, *args, username=None, password=None, 
@@ -105,7 +114,8 @@ class CommonClient(svn.common_base.CommonBase):
         # symbols. However, we retain the old ones to maintain backwards-
         # compatibility.
 
-        # TODO(dustin): Should we be casting the integers?
+# TODO(dustin): Should we be casting the integers?
+# TODO(dustin): Convert to namedtuple in the next version.
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
@@ -285,7 +295,7 @@ class CommonClient(svn.common_base.CommonBase):
             entry_attr = entry.attrib
             name = entry_attr['path']
 
-            wcstatus = entry.find('wc-status').text
+            wcstatus = entry.find('wc-status')
             wcstatus_attr = wcstatus.attrib
 
             change_type_raw = wcstatus_attr['item']
@@ -297,12 +307,12 @@ class CommonClient(svn.common_base.CommonBase):
             if revision is not None:
                 revision = int(revision)
 
-            yield {
-                'name': name,
-                'type_raw_name': change_type_raw,
-                'type': change_type,
-                'revision': revision,
-            }
+            yield _STATUS_ENTRY(
+                name=name,
+                type_raw_name=change_type_raw,
+                type=change_type,
+                revision=revision
+            )
 
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
@@ -346,7 +356,8 @@ class CommonClient(svn.common_base.CommonBase):
                 commit_attr = commit_node.attrib
                 revision = int(commit_attr['revision'])
 
-                yield {
+# TODO(dustin): Convert this to a namedtuple in the next version.
+                entry = {
                     'kind': kind,
 
                     # To decouple people from the knowledge of the value.
@@ -362,6 +373,8 @@ class CommonClient(svn.common_base.CommonBase):
 
                     'commit_revision': revision,
                 }
+
+                yield entry
 
     def list_recursive(self, rel_path=None, yield_dirs=False,
                        path_filter_cb=None):
