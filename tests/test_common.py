@@ -5,7 +5,9 @@ import unittest
 import shutil
 
 from tests.resources.expected_output import diff_summary, diff_summary_2, cat
-from svn.common import CommonClient, SvnException
+
+import svn.exception
+import svn.common
 
 # TODO(dustin): We need to refactor this to depend on a test SVN tree that's 
 #               stored within the project.
@@ -27,45 +29,66 @@ class TestCommonClient(unittest.TestCase):
 
     def test_error_client_formation(self):
         """
-        Testing SvnException error while client formation
+        Testing svn.exception.SvnException error while client formation
         :return:
         """
-        with self.assertRaises(SvnException):
-            CommonClient(self.test_svn_url, 'random')
+        with self.assertRaises(svn.exception.SvnException):
+            svn.common.CommonClient(self.test_svn_url, 'random')
+
+    def __get_cc(self):
+        return svn.common.CommonClient(self.test_svn_url, 'url')
 
     def test_diff_summary(self):
         """
         Checking diff summary
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').diff_summary(self.test_start_revision,
-                                                                            self.test_end_revision)
-        self.assertTrue(actual_answer == diff_summary or actual_answer == diff_summary_2)
+        cc = self.__get_cc()
+        actual_answer = \
+            cc.diff_summary(
+                self.test_start_revision,
+                self.test_end_revision)
+
+        self.assertTrue(
+            actual_answer == diff_summary or \
+            actual_answer == diff_summary_2)
 
     def test_diff(self):
         """
         Checking diff
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').diff(self.test_start_revision, self.test_end_revision)
+        cc = self.__get_cc()
+        actual_answer = \
+            cc.diff(self.test_start_revision, self.test_end_revision)
+
         for index, individual_diff in enumerate(actual_answer):
             for diff_key in individual_diff:
                 if diff_key == 'diff':
-                    self.assertTrue('sling/trunk/bundles/extensions/models/pom.xml' in
-                                    individual_diff[diff_key] or 'sling/trunk/pom.xml' in individual_diff[diff_key])
-                    self.assertTrue('<module>bundles/extensions/models</module>' in individual_diff[diff_key] or
-                                    '<description>Apache Sling Models</description>' in individual_diff[diff_key])
+                    self.assertTrue(
+                        'sling/trunk/bundles/extensions/models/pom.xml' \
+                            in individual_diff[diff_key] or \
+                        'sling/trunk/pom.xml' \
+                            in individual_diff[diff_key])
+                    self.assertTrue(
+                        '<module>bundles/extensions/models</module>' \
+                            in individual_diff[diff_key] or
+                        '<description>Apache Sling Models</description>' \
+                            in individual_diff[diff_key])
                 elif diff_key == 'path':
-                    self.assertTrue('http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml' in
-                                    individual_diff[diff_key] or
-                                    'http://svn.apache.org/repos/asf/sling/trunk/pom.xml' in individual_diff[diff_key])
+                    self.assertTrue(
+                        'http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml' \
+                            in individual_diff[diff_key] or \
+                        'http://svn.apache.org/repos/asf/sling/trunk/pom.xml' \
+                            in individual_diff[diff_key])
 
     def test_list(self):
         """
         Checking list
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').list()
+        cc = self.__get_cc()
+        actual_answer = cc.list()
         self.assertEqual(next(actual_answer), 'abdera/')
 
     def test_info(self):
@@ -73,18 +96,33 @@ class TestCommonClient(unittest.TestCase):
         Checking info
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').info()
-        self.assertEqual(actual_answer['entry_path'], 'asf')
-        self.assertEqual(actual_answer['repository_root'], 'http://svn.apache.org/repos/asf')
-        self.assertEqual(actual_answer['entry#kind'], 'dir')
-        self.assertEqual(actual_answer['repository/uuid'], '13f79535-47bb-0310-9956-ffa450edef68')
+        cc = self.__get_cc()
+        actual_answer = cc.info()
+
+        self.assertEqual(
+            actual_answer['entry_path'], 
+            'asf')
+        
+        self.assertEqual(
+            actual_answer['repository_root'], 
+            'http://svn.apache.org/repos/asf')
+        
+        self.assertEqual(
+            actual_answer['entry#kind'], 
+            'dir')
+        
+        self.assertEqual(
+            actual_answer['repository/uuid'], 
+            '13f79535-47bb-0310-9956-ffa450edef68')
 
     def test_log(self):
         """
         Checking log
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').log_default(revision_from=1761404, revision_to=1761403)
+        cc = self.__get_cc()
+        actual_answer = \
+            cc.log_default(revision_from=1761404, revision_to=1761403)
         self.assertEqual(next(actual_answer).author, 'sseifert')
 
     def test_cat(self):
@@ -92,7 +130,8 @@ class TestCommonClient(unittest.TestCase):
         Checking cat
         :return:
         """
-        actual_answer = CommonClient(self.test_svn_url, 'url').cat('abdera/abdera2/README', revision=1761404)
+        cc = self.__get_cc()
+        actual_answer = cc.cat('abdera/abdera2/README', revision=1761404)
         self.assertEqual(cat, actual_answer.decode())
 
     def test_export(self):
@@ -100,8 +139,12 @@ class TestCommonClient(unittest.TestCase):
         Checking export
         :return:
         """
-        CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
-                                                                                       revision=1761404)
+        cc = \
+            svn.common.CommonClient(
+                'http://svn.apache.org/repos/asf/tcl/websh/trunk/', 
+                'url')
+
+        cc.export(to_path='CHANGES', revision=1761404)
         self.assertTrue(os.path.exists('CHANGES'))
 
     def test_force_export(self):
@@ -109,18 +152,15 @@ class TestCommonClient(unittest.TestCase):
         Checking export with force option
         :return:
         """
-        CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
-                                                                                       revision=1761404)
+        cc = svn.common.CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url')
+        cc.export(to_path='CHANGES', revision=1761404)
         self.assertTrue(os.path.exists('CHANGES'))
-        with self.assertRaises(SvnException):
-            CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
-                                                                                           revision=1761404)
-        try:
-            CommonClient('http://svn.apache.org/repos/asf/tcl/websh/trunk/', 'url').export(to_path='CHANGES',
-                                                                                           revision=1761404,
-                                                                                           force=True)
-        except SvnException:
-            self.fail("Svn Exception raised with Force also")
 
-if __name__ == '__main__':
-    unittest.main()
+        with self.assertRaises(svn.exception.SvnException):
+            cc.export(to_path='CHANGES', revision=1761404)
+        try:
+            cc.export(to_path='CHANGES', revision=1761404, force=True)
+# TODO(dustin): This except probably unnecessary (any exception should likely 
+#               trigger failure).
+        except svn.exception.SvnException:
+            self.fail("SvnException raised with force export")
