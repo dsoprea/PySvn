@@ -22,6 +22,12 @@ Functions currently implemented:
 - cat
 - diff
 - diff_summary
+- status
+- add
+- commit
+- update
+
+In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a `create` method with which to create repositories.
 
 **You are more than welcome to submit pull-requests to add more support for additional subcommands.**
 
