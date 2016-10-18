@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Admin(svn.common_base.CommonBase):
-    def __init__(self, *args, svnadmin_filepath='svnadmin', env={}, **kwargs):
+    def __init__(self, svnadmin_filepath='svnadmin', env={}, *args, **kwargs):
         super(Admin, self).__init__(*args, **kwargs)
 
         self.__env = env
