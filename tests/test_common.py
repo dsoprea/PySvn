@@ -3,14 +3,22 @@ __author__ = 'tusharmakkar08'
 import os
 import unittest
 import shutil
+import tempfile
+import logging
 
 from tests.resources.expected_output import diff_summary, diff_summary_2, cat
 
+import svn.constants
 import svn.exception
 import svn.common
+import svn.local
+import svn.remote
+import svn.admin
 
-# TODO(dustin): We need to refactor this to depend on a test SVN tree that's 
-#               stored within the project.
+_LOGGER = logging.getLogger(__name__)
+
+# TODO(dustin): Refactor to build and use an adhoc SVN repository for the 
+#               tests.
 
 
 class TestCommonClient(unittest.TestCase):
@@ -18,14 +26,138 @@ class TestCommonClient(unittest.TestCase):
     For testing svn/common.py
     """
 
+    def __get_temp_path_to_use(self):
+        # Determine a temporary location for our repository.
+        temp_path = tempfile.mkdtemp()
+        os.rmdir(temp_path)
+
+        return temp_path
+
     def setUp(self):
         self.test_svn_url = 'http://svn.apache.org/repos/asf'
         self.test_start_revision = 1760022
         self.test_end_revision = 1760023
 
+        self.__setup_test_environment()
+
+    def __setup_test_environment(self):
+
+        # Create test repository.
+        self.__temp_repo_path = self.__get_temp_path_to_use()
+        print("REPO_PATH: {}".format(self.__temp_repo_path))
+
+        a = svn.admin.Admin()
+        a.create(self.__temp_repo_path)
+
+        # Check-out the test repository.
+
+        self.__temp_co_path = self.__get_temp_path_to_use()
+        print("CO_PATH: {}".format(self.__temp_co_path))
+
+        r = svn.remote.RemoteClient('file://' + self.__temp_repo_path)
+        r.checkout(self.__temp_co_path)
+
+        # Create a client for it.
+        self.__temp_lc = svn.local.LocalClient(self.__temp_co_path)
+
     def tearDown(self):
+# TODO(dustin): !! This has to be refactored to use a random temporary file.
         if os.path.exists('CHANGES'):
             shutil.rmtree('CHANGES')
+
+        try:
+            shutil.rmtree(self.__temp_co_path)
+        except:
+            _LOGGER.exception("Could not cleanup temporary checkout path: [%s]", self.__temp_co_path)
+
+        try:
+            shutil.rmtree(self.__temp_repo_path)
+        except:
+            _LOGGER.exception("Could not cleanup temporary repository path: [%s]", self.__temp_repo_path)
+
+    def __stage_co_directory_1(self):
+        """Establish a new file, an added file, a committed file, and a changed file."""
+
+        # Create a file that will not be committed.
+
+        rel_filepath = 'new_file'
+        filepath = os.path.join(self.__temp_co_path, rel_filepath)
+        with open(filepath, 'w') as f:
+            pass
+
+        self.__temp_lc.add(rel_filepath)
+
+        # Create a file that will be committed and remain unchanged.
+
+        rel_filepath = 'committed_unchanged'
+        filepath = os.path.join(self.__temp_co_path, rel_filepath)
+        with open(filepath, 'w') as f:
+            pass
+
+        self.__temp_lc.add(rel_filepath)
+
+        # Create a file that will be committed and then changed.
+
+        rel_filepath_changed = 'committed_changed'
+        filepath_changed = os.path.join(self.__temp_co_path, rel_filepath_changed)
+        with open(filepath_changed, 'w') as f:
+            pass
+
+        self.__temp_lc.add(rel_filepath_changed)
+
+        # Create a file that will be committed and then delete.
+
+        rel_filepath_deleted = 'committed_deleted'
+        filepath_deleted = os.path.join(self.__temp_co_path, rel_filepath_deleted)
+        with open(filepath_deleted, 'w') as f:
+            pass
+
+        self.__temp_lc.add(rel_filepath_deleted)
+
+        # Commit the new files.
+
+        self.__temp_lc.commit("Initial commit.")
+
+        # Do an update to pick-up the changes from the commit.
+
+        self.__temp_lc.update()
+
+        # Change the one committed file so that it will show up as modified.
+
+        with open(filepath_changed, 'w') as f:
+            f.write("new data")
+
+        # Delete the one committed file so that it will show up as deleted.
+
+        os.unlink(filepath_deleted)
+
+        # Create a file that will be added and not committed.
+
+        rel_filepath = 'added'
+        filepath = os.path.join(self.__temp_co_path, rel_filepath)
+        with open(filepath, 'w') as f:
+            pass
+
+        self.__temp_lc.add(rel_filepath)
+
+    def test_status(self):
+        self.__stage_co_directory_1()
+
+        status = {}
+        for s in self.__temp_lc.status():
+            _LOGGER.debug("STATUS: %s", s)
+
+            filename = os.path.basename(s.name)
+            status[filename] = s
+
+        added = status['added']
+        self.assertTrue(added is not None and added.type == svn.constants.ST_ADDED)
+
+        committed_changed = status['committed_changed']
+        self.assertTrue(committed_changed is not None and committed_changed.type == svn.constants.ST_MODIFIED)
+
+        committed_deleted = status['committed_deleted']
+        self.assertTrue(committed_deleted is not None and committed_deleted.type == svn.constants.ST_MISSING)
 
     def test_error_client_formation(self):
         """
