@@ -24,6 +24,7 @@ Functions currently implemented:
 - diff_summary
 - status
 - add
+- remove
 - commit
 - update
 
@@ -278,6 +279,16 @@ diff(start_revision,  end_revision)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finds all the diff between start and end revision id. Here another key of 'diff' is added which shows the diff of files.
+
+using authentication credentials
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you need to supply a username and password, you can do so when creating the repository. ::
+
+    import svn.local
+
+    l = svn.local.LocalClient('https://github.com/dsoprea/PySvn.git', username='yourusername', password='yourpassword')
+
 
 .. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
    :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !
