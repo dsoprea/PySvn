@@ -22,7 +22,7 @@ setuptools.setup(
     author_email='myselfasunder@gmail.com',
     url='https://github.com/dsoprea/PySvn',
     license='GPL 2',
-    packages=setuptools.find_packages(exclude=['test']),
+    packages=setuptools.find_packages(exclude=['tests']),
     include_package_data=True,
     zip_safe=False,
     package_data={
