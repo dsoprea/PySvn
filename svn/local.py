@@ -23,8 +23,17 @@ class LocalClient(svn.common.CommonClient):
             [rel_path],
             wd=self.path)
 
-    def commit(self, message, rel_filepaths=[]):
-        args = ['-m', message] + rel_filepaths
+    def remove(self, rel_path):
+        self.run_command(
+            'remove',
+            [rel_path],
+            wd=self.path)
+
+    def commit(self, message, rel_filepaths=[], username=None, password=None):
+        args = []
+        if username: args += ['--username', username]
+        if password: args += ['--password', password]
+        args += ['-m', message] + rel_filepaths
 
         self.run_command(
             'commit',
