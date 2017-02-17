@@ -74,6 +74,8 @@ class CommonClient(svn.common_base.CommonBase):
             ['--xml', full_url_or_path],
             do_combine=True)
 
+        begin = str(result).find('<?xml')
+        result = result[begin:]
         root = xml.etree.ElementTree.fromstring(result)
 
         entry_attr = root.find('entry').attrib
