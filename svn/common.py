@@ -23,7 +23,7 @@ _STATUS_ENTRY = \
 
 
 class CommonClient(svn.common_base.CommonBase):
-    def __init__(self, url_or_path, type_, username=None, password=None, 
+    def __init__(self, url_or_path, type_, username=None, password=None,
                  svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
         super(CommonClient, self).__init__(*args, **kwargs)
 
@@ -49,8 +49,10 @@ class CommonClient(svn.common_base.CommonBase):
             cmd += ['--username', self.__username]
             cmd += ['--password', self.__password]
             cmd += ['--no-auth-cache']
-
-        cmd += [subcommand] + args
+        if type(args) is list:
+            cmd += [subcommand] + args
+        else:
+            cmd += [subcommand] + [args]
         return self.external_command(cmd, environment=self.__env, **kwargs)
 
     def __element_text(self, element):
@@ -301,7 +303,7 @@ class CommonClient(svn.common_base.CommonBase):
             change_type_raw = wcstatus_attr['item']
             change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
 
-            # This will be absent if the file is "unversioned". It'll be "-1" 
+            # This will be absent if the file is "unversioned". It'll be "-1"
             # if added but not committed.
             revision = wcstatus_attr.get('revision')
             if revision is not None:

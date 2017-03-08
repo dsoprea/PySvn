@@ -17,7 +17,7 @@ import svn.admin
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO(dustin): Refactor to build and use an adhoc SVN repository for the 
+# TODO(dustin): Refactor to build and use an adhoc SVN repository for the
 #               tests.
 
 
@@ -232,19 +232,19 @@ class TestCommonClient(unittest.TestCase):
         actual_answer = cc.info()
 
         self.assertEqual(
-            actual_answer['entry_path'], 
+            actual_answer['entry_path'],
             'asf')
-        
+
         self.assertEqual(
-            actual_answer['repository_root'], 
+            actual_answer['repository_root'],
             'http://svn.apache.org/repos/asf')
-        
+
         self.assertEqual(
-            actual_answer['entry#kind'], 
+            actual_answer['entry#kind'],
             'dir')
-        
+
         self.assertEqual(
-            actual_answer['repository/uuid'], 
+            actual_answer['repository/uuid'],
             '13f79535-47bb-0310-9956-ffa450edef68')
 
     def test_log(self):
@@ -266,6 +266,14 @@ class TestCommonClient(unittest.TestCase):
         actual_answer = cc.cat('abdera/abdera2/README', revision=1761404)
         self.assertEqual(cat, actual_answer.decode())
 
+    def test_update(self):
+        """
+        Checking cat
+        :return:
+        """
+        cc = self.__get_cc()
+        cc.update('.')
+
     def test_export(self):
         """
         Checking export
@@ -273,7 +281,7 @@ class TestCommonClient(unittest.TestCase):
         """
         cc = \
             svn.common.CommonClient(
-                'http://svn.apache.org/repos/asf/tcl/websh/trunk/', 
+                'http://svn.apache.org/repos/asf/tcl/websh/trunk/',
                 'url')
 
         cc.export(to_path='CHANGES', revision=1761404)
@@ -292,7 +300,7 @@ class TestCommonClient(unittest.TestCase):
             cc.export(to_path='CHANGES', revision=1761404)
         try:
             cc.export(to_path='CHANGES', revision=1761404, force=True)
-# TODO(dustin): This except probably unnecessary (any exception should likely 
+# TODO(dustin): This except probably unnecessary (any exception should likely
 #               trigger failure).
         except svn.exception.SvnException:
             self.fail("SvnException raised with force export")
