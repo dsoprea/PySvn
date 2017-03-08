@@ -268,7 +268,7 @@ class TestCommonClient(unittest.TestCase):
 
     def test_update(self):
         """
-        Checking cat
+        Checking update
         :return:
         """
         cc = self.__get_cc()
