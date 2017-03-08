@@ -266,14 +266,6 @@ class TestCommonClient(unittest.TestCase):
         actual_answer = cc.cat('abdera/abdera2/README', revision=1761404)
         self.assertEqual(cat, actual_answer.decode())
 
-    def test_update(self):
-        """
-        Checking update
-        :return:
-        """
-        cc = self.__get_cc()
-        cc.update('.')
-
     def test_export(self):
         """
         Checking export
