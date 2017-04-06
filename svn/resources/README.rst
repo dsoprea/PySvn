@@ -31,6 +31,14 @@ In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a 
 
 **You are more than welcome to submit pull-requests to add more support for additional subcommands.**
 
+-----------------------------------------
+Why PySvn when there is already pysvn_ ?
+-----------------------------------------
+
+- pysvn_ requires a lot of libraries to compile and is  `platform specific <https://www.reddit.com/r/Python/comments/22q6gc/this_is_why_i_hate_pysvn/>`_.
+- Using  `virtualenv <http://stackoverflow.com/questions/25984095/install-pysvn-in-a-virtualenv/25984096#25984096>`_ with pysvn_ is just too tedious and cumbersome.
+
+PySvn was made to solve all these issues and make life of developers awesome.
 
 -----
 Usage
@@ -286,3 +294,4 @@ Finds all the diff between start and end revision id. Here another key of 'diff'
    :target: https://travis-ci.org/dsoprea/PySvn
 .. |Coverage_Status| image:: https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master
    :target: https://coveralls.io/github/dsoprea/PySvn?branch=master
+.. _pysvn: http://pysvn.tigris.org/
