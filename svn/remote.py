@@ -17,7 +17,8 @@ class RemoteClient(svn.common.CommonClient):
 
         cmd += [self.url, path]
 
-        self.run_command('checkout', cmd)
+        cmd_output = self.run_command('checkout', cmd)
+        return cmd_output
 
     def __repr__(self):
         return '<SVN(REMOTE) %s>' % self.url
