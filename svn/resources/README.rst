@@ -26,6 +26,7 @@ Functions currently implemented:
 - add
 - commit
 - update
+- cleanup
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a `create` method with which to create repositories.
 

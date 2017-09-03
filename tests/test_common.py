@@ -159,6 +159,14 @@ class TestCommonClient(unittest.TestCase):
         committed_deleted = status['committed_deleted']
         self.assertTrue(committed_deleted is not None and committed_deleted.type == svn.constants.ST_MISSING)
 
+    def test_update(self):
+        self.__stage_co_directory_1()
+        self.__temp_lc.commit("Second commit.")
+        self.__temp_lc.update()
+        self.assertEqual(2, self.__temp_lc.info()['commit_revision'])
+        self.__temp_lc.update(revision=1)
+        self.assertEqual(1, self.__temp_lc.info()['commit_revision'])
+
     def test_error_client_formation(self):
         """
         Testing svn.exception.SvnException error while client formation
@@ -247,6 +255,12 @@ class TestCommonClient(unittest.TestCase):
             actual_answer['repository/uuid'], 
             '13f79535-47bb-0310-9956-ffa450edef68')
 
+    def test_info_revision(self):
+        cc = self.__get_cc()
+        actual_answer = cc.info(revision=1000000)
+        self.assertEqual(actual_answer['commit_revision'], 1000000)
+        self.assertEqual(actual_answer['commit_author'], 'yonik')
+
     def test_log(self):
         """
         Checking log
@@ -296,3 +310,6 @@ class TestCommonClient(unittest.TestCase):
 #               trigger failure).
         except svn.exception.SvnException:
             self.fail("SvnException raised with force export")
+
+    def test_cleanup(self):
+        self.__temp_lc.cleanup()
