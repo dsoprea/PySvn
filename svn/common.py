@@ -64,14 +64,19 @@ class CommonClient(svn.common_base.CommonBase):
 
         return None
 
-    def info(self, rel_path=None):
+    def info(self, rel_path=None, revision=None):
+        cmd = []
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
+        cmd += ['--xml', full_url_or_path]
 
         result = self.run_command(
             'info',
-            ['--xml', full_url_or_path],
+            cmd,
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)

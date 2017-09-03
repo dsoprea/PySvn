@@ -31,8 +31,18 @@ class LocalClient(svn.common.CommonClient):
             args,
             wd=self.path)
 
-    def update(self, rel_filepaths=[]):
+    def update(self, rel_filepaths=[], revision=None):
+        cmd = []
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+        cmd += rel_filepaths
         self.run_command(
             'update',
-            rel_filepaths,
+            cmd,
+            wd=self.path)
+
+    def cleanup(self):
+        self.run_command(
+            'cleanup',
+            [],
             wd=self.path)
