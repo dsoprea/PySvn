@@ -57,7 +57,7 @@ class TestCommonClient(unittest.TestCase):
         self.__temp_co_path = self.__get_temp_path_to_use()
         _LOGGER.debug("CO_PATH: {}".format(self.__temp_co_path))
 
-        r = svn.remote.RemoteClient('file://' + self.__temp_repo_path)
+        r = svn.remote.RemoteClient('file:///' + self.__temp_repo_path)
         r.checkout(self.__temp_co_path)
 
         # Create a client for it.
