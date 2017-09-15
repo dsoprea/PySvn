@@ -57,6 +57,8 @@ class TestCommonClient(unittest.TestCase):
         self.__temp_co_path = self.__get_temp_path_to_use()
         _LOGGER.debug("CO_PATH: {}".format(self.__temp_co_path))
 
+        # Duck-type identification of path type (Windows, Linux, etc.) to ensure
+        # file uri canonicity is enforced. URI must be file:///.
         if self.__temp_repo_path[0] == '/':
             r = svn.remote.RemoteClient('file://' + self.__temp_repo_path)
         else: 
@@ -265,6 +267,18 @@ class TestCommonClient(unittest.TestCase):
                         'http://svn.apache.org/repos/asf/sling/trunk/pom.xml' \
                             in individual_diff[diff_key])
 
+    def test_diff_separator(self):
+        """
+        Checking diff
+        :return:
+        """
+        cc = self.__get_cc()
+        change = '502054'
+        file_cluster_event = 'activemq/activecluster/trunk/src/main/java/org/apache/activecluster/ClusterEvent.java'
+        actual_answer = cc.diff('0', change, file_cluster_event)[0]
+        self.assertTrue('static final int UPDATE_NODE = 2' in actual_answer['diff'])
+        self.assertTrue('else if (type == FAILED_NODE)' in actual_answer['diff'])
+
     def test_list(self):
         """
         Checking list
@@ -375,6 +389,16 @@ class TestCommonClient(unittest.TestCase):
 
     def test_cleanup(self):
         self.__temp_lc.cleanup()
+
+    def test_properties_cc(self):
+        """
+        '''Tests CommonClient.properties()'''
+        """
+        cc = self.__get_cc()
+        props = cc.properties('activemq/activecluster/trunk/src/main/java/org/apache/activecluster@1808406')
+        self.assertFalse(bool(props))
+        props = cc.properties('activemq/activecluster/trunk/src/main/java/org/apache/activecluster/Cluster.java@1808406')
+        self.assertEqual(props['svn:eol-style'], 'native')
 
     def test_properties(self):  
         '''Tests CommonClient.properties() and LocalClient.propset()'''
