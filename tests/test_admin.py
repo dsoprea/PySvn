@@ -16,6 +16,9 @@ class TestAdmin(unittest.TestCase):
     For testing svn/admin.py
     """
 
+    def shortDescription(self):
+        return None
+
     def test_create_repository(self):
         """
         Testing repository creation.

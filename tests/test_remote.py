@@ -13,6 +13,9 @@ class TestRemoteClient(unittest.TestCase):
     For testing svn/remote.py
     """
 
+    def shortDescription(self):
+        return None
+
     def setUp(self):
         self.test_svn_url = 'http://svn.apache.org/repos/asf/ace/trunk/cnf/lib/kxml2'
         self.test_fake_url = 'http://svn_abc.1apache.org1/repos/asf/src'

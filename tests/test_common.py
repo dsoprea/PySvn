@@ -17,7 +17,7 @@ import svn.admin
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO(dustin): Refactor to build and use an adhoc SVN repository for the 
+# TODO(dustin): Refactor to build and use an adhoc SVN repository for the
 #               tests.
 
 
@@ -25,6 +25,9 @@ class TestCommonClient(unittest.TestCase):
     """
     For testing svn/common.py
     """
+
+    def shortDescription(self):
+        return None
 
     def __get_temp_path_to_use(self):
         # Determine a temporary location for our repository.
@@ -44,7 +47,7 @@ class TestCommonClient(unittest.TestCase):
 
         # Create test repository.
         self.__temp_repo_path = self.__get_temp_path_to_use()
-        print("REPO_PATH: {}".format(self.__temp_repo_path))
+        _LOGGER.debug("REPO_PATH: {}".format(self.__temp_repo_path))
 
         a = svn.admin.Admin()
         a.create(self.__temp_repo_path)
@@ -52,7 +55,7 @@ class TestCommonClient(unittest.TestCase):
         # Check-out the test repository.
 
         self.__temp_co_path = self.__get_temp_path_to_use()
-        print("CO_PATH: {}".format(self.__temp_co_path))
+        _LOGGER.debug("CO_PATH: {}".format(self.__temp_co_path))
 
         r = svn.remote.RemoteClient('file://' + self.__temp_repo_path)
         r.checkout(self.__temp_co_path)
@@ -240,19 +243,19 @@ class TestCommonClient(unittest.TestCase):
         actual_answer = cc.info()
 
         self.assertEqual(
-            actual_answer['entry_path'], 
+            actual_answer['entry_path'],
             'asf')
-        
+
         self.assertEqual(
-            actual_answer['repository_root'], 
+            actual_answer['repository_root'],
             'http://svn.apache.org/repos/asf')
-        
+
         self.assertEqual(
-            actual_answer['entry#kind'], 
+            actual_answer['entry#kind'],
             'dir')
-        
+
         self.assertEqual(
-            actual_answer['repository/uuid'], 
+            actual_answer['repository/uuid'],
             '13f79535-47bb-0310-9956-ffa450edef68')
 
     def test_info_revision(self):
@@ -287,7 +290,7 @@ class TestCommonClient(unittest.TestCase):
         """
         cc = \
             svn.common.CommonClient(
-                'http://svn.apache.org/repos/asf/tcl/websh/trunk/', 
+                'http://svn.apache.org/repos/asf/tcl/websh/trunk/',
                 'url')
 
         cc.export(to_path='CHANGES', revision=1761404)
@@ -306,7 +309,7 @@ class TestCommonClient(unittest.TestCase):
             cc.export(to_path='CHANGES', revision=1761404)
         try:
             cc.export(to_path='CHANGES', revision=1761404, force=True)
-# TODO(dustin): This except probably unnecessary (any exception should likely 
+# TODO(dustin): This except probably unnecessary (any exception should likely
 #               trigger failure).
         except svn.exception.SvnException:
             self.fail("SvnException raised with force export")
