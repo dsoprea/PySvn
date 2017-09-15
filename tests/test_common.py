@@ -326,5 +326,16 @@ class TestCommonClient(unittest.TestCase):
         except svn.exception.SvnException:
             self.fail("SvnException raised with force export")
 
+    def test_properties(self):
+        """
+        Checking we can retrieve properties
+        :return:
+        """
+        cc = self.__get_cc()
+        props = cc.properties('activemq/activecluster/trunk/src/main/java/org/apache/activecluster@1808406')
+        self.assertFalse(bool(props))
+        props = cc.properties('activemq/activecluster/trunk/src/main/java/org/apache/activecluster/Cluster.java@1808406')
+        self.assertEqual(props['svn:eol-style'], 'native')
+
     def test_cleanup(self):
         self.__temp_lc.cleanup()
