@@ -232,8 +232,8 @@ class TestCommonClient(unittest.TestCase):
         """
         cc = self.__get_cc()
         change = '502054'
-        file_ClusterEvent = 'activemq/activecluster/trunk/src/main/java/org/apache/activecluster/ClusterEvent.java'
-        actual_answer = cc.diff('0', change, file_ClusterEvent)[0]
+        file_cluster_event = 'activemq/activecluster/trunk/src/main/java/org/apache/activecluster/ClusterEvent.java'
+        actual_answer = cc.diff('0', change, file_cluster_event)[0]
         self.assertTrue('static final int UPDATE_NODE = 2' in actual_answer['diff'])
         self.assertTrue('else if (type == FAILED_NODE)' in actual_answer['diff'])
 
