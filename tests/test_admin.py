@@ -32,7 +32,10 @@ class TestAdmin(unittest.TestCase):
             a.create(temp_path)
 
             # Do a read.
-            rc = svn.remote.RemoteClient('file://' + temp_path)
+            if temp_path[0] == '/':
+                rc = svn.remote.RemoteClient('file://' + temp_path)
+            else:
+                rc = svn.remote.RemoteClient('file:///' + temp_path)
             info = rc.info()
             _LOGGER.debug("Info from new repository: [%s]", str(info))
         finally:
