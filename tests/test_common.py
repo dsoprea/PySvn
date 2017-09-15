@@ -225,6 +225,18 @@ class TestCommonClient(unittest.TestCase):
                         'http://svn.apache.org/repos/asf/sling/trunk/pom.xml' \
                             in individual_diff[diff_key])
 
+    def test_diff_separator(self):
+        """
+        Checking diff
+        :return:
+        """
+        cc = self.__get_cc()
+        change = '502054'
+        file_ClusterEvent = 'activemq/activecluster/trunk/src/main/java/org/apache/activecluster/ClusterEvent.java'
+        actual_answer = cc.diff('0', change, file_ClusterEvent)[0]
+        self.assertTrue('static final int UPDATE_NODE = 2' in actual_answer['diff'])
+        self.assertTrue('else if (type == FAILED_NODE)' in actual_answer['diff'])
+
     def test_list(self):
         """
         Checking list

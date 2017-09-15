@@ -157,8 +157,11 @@ class CommonClient(svn.common_base.CommonBase):
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
         target_elem = root.find('target')
-        property_names = [p.attrib["name"]
-                          for p in target_elem.findall('property')]
+        if target_elem is not None:
+            property_names = [p.attrib["name"]
+                              for p in target_elem.findall('property')]
+        else:
+            property_names = []
 
         # now query the content of each propery
         property_dict = {}
@@ -458,6 +461,8 @@ class CommonClient(svn.common_base.CommonBase):
             diff_summary['diff'] = ''
             if 'path' in diff_summary:
                 summary_index = diff_summary['path'].split(full_url_or_path)[-1].strip('/')
+                if summary_index == '':
+                    summary_index = os.path.basename(full_url_or_path)
                 if summary_index in file_to_diff:
                     diff_summary['diff'] = file_to_diff[summary_index]
         return diff_summaries
