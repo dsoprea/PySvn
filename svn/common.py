@@ -474,7 +474,7 @@ class CommonClient(svn.common_base.CommonBase):
             if 'path' in diff_summary:
                 # Summary file paths are absolute, while diff file indexes are relative.
                 # We try to match them up, first checking the root of the diff.
-                summary_index = diff_summary['path'].split(full_url_or_path)[-1].strip('/')
+                summary_index = diff_summary['path'][len(full_url_or_path):].strip('/')
                 # If the diff was conducted directly on the file, not a directory, the 
                 # above will fail to find the relative file name, so we look for that directly.
                 if summary_index == '':
