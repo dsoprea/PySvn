@@ -54,6 +54,8 @@ class TestCommonClient(unittest.TestCase):
         self.__temp_co_path = self.__get_temp_path_to_use()
         print("CO_PATH: {}".format(self.__temp_co_path))
 
+        # Duck-type identification of path type (Windows, Linux, etc.) to ensure 
+        # file uri canonicity is enforced. URI must be file:///.
         if self.__temp_repo_path[0] == '/':
             r = svn.remote.RemoteClient('file://' + self.__temp_repo_path)
         else: 

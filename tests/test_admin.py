@@ -32,6 +32,8 @@ class TestAdmin(unittest.TestCase):
             a.create(temp_path)
 
             # Do a read.
+            # Duck-type identification of path type (Windows, Linux, etc.) to ensure                          
+            # file uri canonicity is enforced. URI must be file:///.
             if temp_path[0] == '/':
                 rc = svn.remote.RemoteClient('file://' + temp_path)
             else:
