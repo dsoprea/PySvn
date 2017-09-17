@@ -160,6 +160,8 @@ class CommonClient(svn.common_base.CommonBase):
         if target_elem is not None:
             property_names = [p.attrib["name"]
                               for p in target_elem.findall('property')]
+        # In the event that no properties are associated, an empty properties
+        # element is returned as the result. 
         else:
             property_names = []
 
@@ -453,7 +455,7 @@ class CommonClient(svn.common_base.CommonBase):
             do_combine=True)
         file_to_diff = {}
 
-        # A diff has this form, potentially repeating for multiple sections.
+        # A diff has this form, potentially repeating for multiple files.
         #
         #  Index: relative/filename.txt
         # ===================================================================
