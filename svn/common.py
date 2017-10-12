@@ -23,7 +23,7 @@ _STATUS_ENTRY = \
 
 
 class CommonClient(svn.common_base.CommonBase):
-    def __init__(self, url_or_path, type_, username=None, password=None, 
+    def __init__(self, url_or_path, type_, username=None, password=None,
                  svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
         super(CommonClient, self).__init__(*args, **kwargs)
 
@@ -33,6 +33,9 @@ class CommonClient(svn.common_base.CommonBase):
         self.__svn_filepath = svn_filepath
         self.__trust_cert = trust_cert
         self.__env = env
+
+        if type_ == svn.constants.LT_PATH and not os.path.isabs(self.__url_or_path):
+            self.__url_or_path = os.path.join(os.getcwd(), self.__url_or_path)
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise svn.exception.SvnException("Type is invalid: {}".format(type_))
@@ -51,7 +54,18 @@ class CommonClient(svn.common_base.CommonBase):
             cmd += ['--no-auth-cache']
 
         cmd += [subcommand] + args
-        return self.external_command(cmd, environment=self.__env, **kwargs)
+
+        if self.__type == svn.constants.LT_PATH:
+            cwd = os.getcwd()
+            os.chdir(self.__url_or_path)
+
+        try:
+          result = self.external_command(cmd, environment=self.__env, **kwargs)
+        finally:
+          if self.__type == svn.constants.LT_PATH:
+              os.chdir(cwd)
+
+        return result
 
     def __element_text(self, element):
         """Return ElementTree text or None
@@ -69,9 +83,14 @@ class CommonClient(svn.common_base.CommonBase):
         if revision is not None:
             cmd += ['-r', str(revision)]
 
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
         cmd += ['--xml', full_url_or_path]
 
         result = self.run_command(
@@ -145,9 +164,14 @@ class CommonClient(svn.common_base.CommonBase):
                   as value
         """
 
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
 
         result = self.run_command(
             'proplist',
@@ -179,7 +203,17 @@ class CommonClient(svn.common_base.CommonBase):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
-        cmd += [self.__url_or_path + '/' + rel_filepath]
+
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
+        if rel_filepath is not None:
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_filepath
+
+        cmd += [full_url_or_path]
         return self.run_command('cat', cmd, return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
@@ -190,9 +224,14 @@ class CommonClient(svn.common_base.CommonBase):
         a FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
 
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_filepath is not None:
-            full_url_or_path += '/' + rel_filepath
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_filepath
 
         timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
             if timestamp_from_dt \
@@ -283,15 +322,27 @@ class CommonClient(svn.common_base.CommonBase):
         if revision is not None:
             cmd += ['-r', str(revision)]
 
-        cmd += [self.__url_or_path, to_path]
+        if not os.path.isabs(to_path):
+            to_path = os.path.join(os.getcwd(), to_path)
+
+        full_url_or_path = '.'
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
+        cmd += [full_url_or_path, to_path]
         cmd.append('--force') if force else None
 
         self.run_command('export', cmd)
 
     def status(self, rel_path=None):
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
 
         raw = self.run_command(
             'status',
@@ -311,7 +362,7 @@ class CommonClient(svn.common_base.CommonBase):
             change_type_raw = wcstatus_attr['item']
             change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
 
-            # This will be absent if the file is "unversioned". It'll be "-1" 
+            # This will be absent if the file is "unversioned". It'll be "-1"
             # if added but not committed.
             revision = wcstatus_attr.get('revision')
             if revision is not None:
@@ -325,9 +376,14 @@ class CommonClient(svn.common_base.CommonBase):
             )
 
     def list(self, extended=False, rel_path=None):
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
 
         if extended is False:
             for line in self.run_command(
@@ -422,9 +478,14 @@ class CommonClient(svn.common_base.CommonBase):
         Provides a summarized output of a diff between two revisions
         (file, change type, file type)
         """
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
         result = self.run_command(
             'diff',
             ['--old', '{0}@{1}'.format(full_url_or_path, old),
@@ -445,9 +506,14 @@ class CommonClient(svn.common_base.CommonBase):
         Provides output of a diff between two revisions (file, change type,
          file type)
         """
-        full_url_or_path = self.__url_or_path
+        full_url_or_path = ''
+        if self.__type == svn.constants.LT_URL:
+            full_url_or_path = self.__url_or_path
+
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            if self.__type == svn.constants.LT_URL:
+                full_url_or_path += '/'
+            full_url_or_path += rel_path
         diff_result = self.run_command(
             'diff',
             ['--old', '{0}@{1}'.format(full_url_or_path, old),

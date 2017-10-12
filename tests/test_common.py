@@ -78,70 +78,121 @@ class TestCommonClient(unittest.TestCase):
         except:
             _LOGGER.exception("Could not cleanup temporary repository path: [%s]", self.__temp_repo_path)
 
+        if hasattr(self, '__temp_co_trunk_path'):
+            try:
+                shutil.rmtree(self.__temp_co_trunk_path)
+            except:
+                _LOGGER.exception("Could not cleanup temporary checkout path: [%s]", self.__temp_co_trunk_path)
+
     def __stage_co_directory_1(self):
-        """Establish a new file, an added file, a committed file, and a changed file."""
+        """Establish basic directories (trunk, tags and branches), a new file, an added file, a committed file, and a changed file."""
 
-        # Create a file that will not be committed.
+        if not hasattr(self, '__stage_co_directory_1_done'):
+            # Create the basic directories: trunk, tags, branches
 
-        rel_filepath = 'new_file'
-        filepath = os.path.join(self.__temp_co_path, rel_filepath)
-        with open(filepath, 'w') as f:
-            pass
+            rel_dirpath_trunk = 'trunk'
+            dirpath_trunk = os.path.join(self.__temp_co_path, rel_dirpath_trunk)
+            os.mkdir(dirpath_trunk)
 
-        self.__temp_lc.add(rel_filepath)
+            rel_dirpath_tags = 'tags'
+            dirpath_tags = os.path.join(self.__temp_co_path, rel_dirpath_tags)
+            os.mkdir(dirpath_tags)
 
-        # Create a file that will be committed and remain unchanged.
+            rel_dirpath_branches = 'branches'
+            dirpath_branches = os.path.join(self.__temp_co_path, rel_dirpath_branches)
+            os.mkdir(dirpath_branches)
 
-        rel_filepath = 'committed_unchanged'
-        filepath = os.path.join(self.__temp_co_path, rel_filepath)
-        with open(filepath, 'w') as f:
-            pass
+            self.__temp_lc.add(rel_dirpath_trunk)
+            self.__temp_lc.add(rel_dirpath_tags)
+            self.__temp_lc.add(rel_dirpath_branches)
 
-        self.__temp_lc.add(rel_filepath)
+            # Commit the basic directories.
 
-        # Create a file that will be committed and then changed.
+            self.__temp_lc.commit("Initial commit.")
 
-        rel_filepath_changed = 'committed_changed'
-        filepath_changed = os.path.join(self.__temp_co_path, rel_filepath_changed)
-        with open(filepath_changed, 'w') as f:
-            pass
+            # Create a file that will not be committed.
 
-        self.__temp_lc.add(rel_filepath_changed)
+            rel_filepath = os.path.join('trunk', 'new_file')
+            filepath = os.path.join(self.__temp_co_path, rel_filepath)
+            with open(filepath, 'w') as f:
+                pass
 
-        # Create a file that will be committed and then delete.
+            self.__temp_lc.add(rel_filepath)
 
-        rel_filepath_deleted = 'committed_deleted'
-        filepath_deleted = os.path.join(self.__temp_co_path, rel_filepath_deleted)
-        with open(filepath_deleted, 'w') as f:
-            pass
+            # Create a file that will be committed and remain unchanged.
 
-        self.__temp_lc.add(rel_filepath_deleted)
+            rel_filepath = os.path.join('trunk', 'committed_unchanged')
+            filepath = os.path.join(self.__temp_co_path, rel_filepath)
+            with open(filepath, 'w') as f:
+                pass
 
-        # Commit the new files.
+            self.__temp_lc.add(rel_filepath)
 
-        self.__temp_lc.commit("Initial commit.")
+            # Create a file that will be committed and then changed.
 
-        # Do an update to pick-up the changes from the commit.
+            rel_filepath_changed = os.path.join('trunk', 'committed_changed')
+            filepath_changed = os.path.join(self.__temp_co_path, rel_filepath_changed)
+            with open(filepath_changed, 'w') as f:
+                pass
 
-        self.__temp_lc.update()
+            self.__temp_lc.add(rel_filepath_changed)
 
-        # Change the one committed file so that it will show up as modified.
+            # Create a file that will be committed and then delete.
 
-        with open(filepath_changed, 'w') as f:
-            f.write("new data")
+            rel_filepath_deleted = os.path.join('trunk', 'committed_deleted')
+            filepath_deleted = os.path.join(self.__temp_co_path, rel_filepath_deleted)
+            with open(filepath_deleted, 'w') as f:
+                pass
 
-        # Delete the one committed file so that it will show up as deleted.
+            self.__temp_lc.add(rel_filepath_deleted)
 
-        os.unlink(filepath_deleted)
+            # Commit the new files.
 
-        # Create a file that will be added and not committed.
+            self.__temp_lc.commit("First commit files.")
 
-        rel_filepath = 'added'
-        filepath = os.path.join(self.__temp_co_path, rel_filepath)
-        with open(filepath, 'w') as f:
-            pass
+            # Do an update to pick-up the changes from the commit.
 
-        self.__temp_lc.add(rel_filepath)
+            self.__temp_lc.update()
+
+            # Create a tag 1.0 from trunk tree
+
+            rel_dirpath_tag_1_0 = os.path.join('tags', '1.0')
+            dirpath_tag_1_0 = os.path.join(self.__temp_co_path, rel_dirpath_tag_1_0)
+
+            shutil.copytree(dirpath_trunk, dirpath_tag_1_0, ignore=shutil.ignore_patterns('.svn'))
+
+            self.__temp_lc.add(rel_dirpath_tag_1_0)
+
+            self.__temp_lc.commit("Create tag 1.0.")
+
+            # Change the one committed file so that it will show up as modified.
+
+            with open(filepath_changed, 'w') as f:
+                f.write("new data")
+
+            # Delete the one committed file so that it will show up as deleted.
+
+            os.unlink(filepath_deleted)
+
+            # Create a file that will be added and not committed.
+
+            rel_filepath = os.path.join('trunk', 'added')
+            filepath = os.path.join(self.__temp_co_path, rel_filepath)
+            with open(filepath, 'w') as f:
+                pass
+
+            self.__temp_lc.add(rel_filepath)
+
+            self.__stage_co_directory_1_done = True
+
+    def test_missing_svn_binary(self):
+        """
+        Testing FileNotFoundError error with binary not found
+        :return:
+        """
+        tmp_lc = svn.common.CommonClient(self.__temp_co_path, svn.constants.LT_PATH, svn_filepath='svn_missing_binary')
+        with self.assertRaises(Exception):
+            tmp_lc.info()
 
     def test_status(self):
         self.__stage_co_directory_1()
@@ -162,11 +213,21 @@ class TestCommonClient(unittest.TestCase):
         committed_deleted = status['committed_deleted']
         self.assertTrue(committed_deleted is not None and committed_deleted.type == svn.constants.ST_MISSING)
 
+    def test_list_abs_path(self):
+        self.__stage_co_directory_1()
+        """
+        Checking list with absolute path
+        :return:
+        """
+        lc = self.__get_lc_trunk()
+        actual_answer = lc.list(False, '^/tags')
+        self.assertEqual(next(actual_answer), '1.0/')
+
     def test_update(self):
         self.__stage_co_directory_1()
-        self.__temp_lc.commit("Second commit.")
+        self.__temp_lc.commit("Fourth commit.")
         self.__temp_lc.update()
-        self.assertEqual(2, self.__temp_lc.info()['commit_revision'])
+        self.assertEqual(4, self.__temp_lc.info()['commit_revision'])
         self.__temp_lc.update(revision=1)
         self.assertEqual(1, self.__temp_lc.info()['commit_revision'])
 
@@ -180,6 +241,22 @@ class TestCommonClient(unittest.TestCase):
 
     def __get_cc(self):
         return svn.common.CommonClient(self.test_svn_url, 'url')
+
+    def __get_lc_trunk(self):
+
+        if not hasattr(self, '__temp_lc_trunk'):
+
+            self.__temp_co_trunk_path = self.__get_temp_path_to_use()
+            print("CO_TRUNK_PATH: {}".format(self.__temp_co_trunk_path))
+
+            # Check-out the test repository on trunk directory.
+            r = svn.remote.RemoteClient('file://' + self.__temp_repo_path + '/trunk')
+            r.checkout(self.__temp_co_trunk_path)
+
+            # Create a client for it.
+            self.__temp_lc_trunk = svn.local.LocalClient(self.__temp_co_trunk_path)
+
+        return self.__temp_lc_trunk
 
     def test_diff_summary(self):
         """
