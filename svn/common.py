@@ -184,7 +184,8 @@ class CommonClient(svn.common_base.CommonBase):
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
                     limit=None, rel_filepath=None, stop_on_copy=False,
-                    revision_from=None, revision_to=None, changelist=False):
+                    revision_from=None, revision_to=None, changelist=False,
+                    use_merge_history=False):
         """Allow for the most-likely kind of log listing: the complete list,
         a FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -232,6 +233,9 @@ class CommonClient(svn.common_base.CommonBase):
         if stop_on_copy is True:
             args += ['--stop-on-copy']
 
+        if use_merge_history is True:
+            args += ['--use-merge-history']
+
         if changelist is True:
             args += ['--verbose']
 
@@ -246,7 +250,8 @@ class CommonClient(svn.common_base.CommonBase):
             'LogEntry',
             named_fields)
 
-        for e in root.findall('logentry'):
+        # Merge history can create nested log entries, so use iter instead of findall
+        for e in root.iter('logentry'):
             entry_info = {x.tag: x.text for x in e.getchildren()}
 
             date = None
