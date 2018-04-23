@@ -136,6 +136,47 @@ class CommonClient(svn.common_base.CommonBase):
 
         return info
 
+    def get_property(self, property, rel_path=None, revision=None, recursive=False):
+        """ Return an svn property, or, if called recursively, a list of tuples associated with a
+                    relative path.
+                :param property: the property to query
+                :param rel_path: relative path in the svn repo to query the
+                                 property from
+                :param revision: the revision to query the property from
+                :param recursive: flag for recursivity
+                :returns: if recursive, a list of pairs (svn path, property value)
+                otherwise, a single str corresponding to the property value
+                """
+        args = []
+        if recursive == True:
+            args += ['-R']
+        if revision:
+            args += ['-r', str(revision)]
+
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        result = self.run_command(
+            'propget',
+            args + ['--xml', property, full_url_or_path],
+            do_combine=True)
+        root = xml.etree.ElementTree.fromstring(result)
+
+        if recursive == True:
+            # This will return a list of tuples
+            to_return = []
+            for target_elem in root.findall('target'):
+                key = target_elem.get('path')
+                value = target_elem.find('property').text
+                to_return += [(key, value)]
+        else:
+            # This will return a single value
+            target_elem = root.find('target')
+            property_elem = target_elem.find('property')
+            to_return = property_elem.text
+        return to_return
+
     def properties(self, rel_path=None):
         """ Return a dictionary with all svn-properties associated with a
             relative path.
@@ -164,14 +205,7 @@ class CommonClient(svn.common_base.CommonBase):
         property_dict = {}
 
         for property_name in property_names:
-            result = self.run_command(
-                'propget',
-                ['--xml', property_name, full_url_or_path, ],
-                do_combine=True)
-            root = xml.etree.ElementTree.fromstring(result)
-            target_elem = root.find('target')
-            property_elem = target_elem.find('property')
-            property_dict[property_name] = property_elem.text
+            property_dict[property_name] = self.get_property(property_name)
 
         return property_dict
 
