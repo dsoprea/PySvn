@@ -143,6 +143,24 @@ class TestCommonClient(unittest.TestCase):
 
         self.__temp_lc.add(rel_filepath)
 
+    def test_get_property(self):
+        cc = self.__get_cc()
+        actual_answer = cc.get_property('svn:ignore', rel_path='whirr/tags/release-0.7.0/services/voldemort', recursive=True)
+        
+        self.assertListEqual(actual_answer, [(
+            'http://svn.apache.org/repos/asf/whirr/tags/release-0.7.0/services/voldemort',
+            '\n'.join(['.project', '.classpath', '.settings', 'target', '', ''])
+        ), (
+            'http://svn.apache.org/repos/asf/whirr/tags/release-0.7.0/services/voldemort/lib',
+            'linkedin-voldemort-0.90.RC3.jar\n'
+        )])
+
+    def test_properties(self):
+        cc = self.__get_cc()
+        actual_answer = cc.properties(rel_path='whirr/tags/release-0.7.0/services/zookeeper')
+        
+        self.assertDictEqual(actual_answer, {'svn:ignore': '\n'.join(['.project', '.classpath', '.settings', 'target', ''])})
+		
     def test_status(self):
         self.__stage_co_directory_1()
 
