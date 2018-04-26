@@ -400,6 +400,9 @@ class TestCommonClient(unittest.TestCase):
         props = cc.properties('activemq/activecluster/trunk/src/main/java/org/apache/activecluster/Cluster.java@1808406')
         self.assertEqual(props['svn:eol-style'], 'native')
 
+        actual_answer = cc.properties(rel_path='whirr/tags/release-0.7.0/services/zookeeper')
+        self.assertDictEqual(actual_answer, {'svn:ignore': '\n'.join(['.project', '.classpath', '.settings', 'target', ''])})
+
     def test_properties(self):  
         '''Tests CommonClient.properties() and LocalClient.propset()'''
         l = self.__temp_lc
