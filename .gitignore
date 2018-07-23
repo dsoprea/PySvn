@@ -15,3 +15,5 @@ venv*
 .tox
 /pip-selfcheck.json
 /man
+*~
+\#*#
