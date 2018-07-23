@@ -26,13 +26,16 @@ class TestLocalClient(unittest.TestCase):
         self.local = svn.local.LocalClient.checkout(
             repo_path=self.dir.getpath('fakerepo'),
             checkout_path=self.dir.getpath('fakecheckout'))
+        self.dir.write('fakecheckout/initial.txt', 'initial')
+        self.local.add('initial.txt')
+        self.local.commit('initial checkin')
 
     def test_add(self):
-        self.dir.write('fakecheckout/testfile1.txt', 'testdata')
-        self.local.add('testfile1.txt')
+        self.dir.write('fakecheckout/add.txt', 'add')
+        self.local.add('add.txt')
         expected = [
             _STATUS_ENTRY(
-                name=self.dir.getpath('fakecheckout/testfile1.txt'),
+                name=self.dir.getpath('fakecheckout/add.txt'),
                 type_raw_name='added',
                 type=1,
                 revision=-1),
@@ -55,8 +58,20 @@ class TestLocalClient(unittest.TestCase):
                 date=actual[0].date,
                 # Back to more orthodox testing...
                 msg='fakemessage',
-                revision=1,
+                revision=2,
                 author=getuser(),
                 changelist=None),
             ]
+        compare(expected=expected, actual=actual)
+
+    def test_delete(self):
+        self.local.delete('initial.txt')
+        expected = [
+            _STATUS_ENTRY(
+                name=self.dir.getpath('fakecheckout/initial.txt'),
+                type_raw_name='deleted',
+                type=3,
+                revision=1),
+            ]
+        actual = self.local.status()
         compare(expected=expected, actual=actual)
