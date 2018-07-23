@@ -26,12 +26,12 @@ class TestLocalClient(unittest.TestCase):
         self.local = svn.local.LocalClient.checkout(
             repo_path=self.dir.getpath('fakerepo'),
             checkout_path=self.dir.getpath('fakecheckout'))
-        self.dir.write('fakecheckout/initial.txt', 'initial')
+        self.dir.write('fakecheckout/initial.txt', b'initial')
         self.local.add('initial.txt')
         self.local.commit('initial checkin')
 
     def test_add(self):
-        self.dir.write('fakecheckout/add.txt', 'add')
+        self.dir.write('fakecheckout/add.txt', b'add')
         self.local.add('add.txt')
         expected = [
             _STATUS_ENTRY(
@@ -44,7 +44,7 @@ class TestLocalClient(unittest.TestCase):
         compare(expected=expected, actual=actual)
 
     def test_commit(self):
-        self.dir.write('fakecheckout/testfile1.txt', 'testdata_for_commit')
+        self.dir.write('fakecheckout/testfile1.txt', b'testdata_for_commit')
         self.local.add('testfile1.txt')
         self.local.commit('fakemessage')
         self.local.update()
