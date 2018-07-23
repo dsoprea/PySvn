@@ -43,6 +43,35 @@ class TestLocalClient(unittest.TestCase):
         actual = self.local.status()
         compare(expected=expected, actual=actual)
 
+    def test_delete(self):
+        self.local.delete('initial.txt')
+        expected = [
+            _STATUS_ENTRY(
+                name=self.dir.getpath('fakecheckout/initial.txt'),
+                type_raw_name='deleted',
+                type=3,
+                revision=1),
+            ]
+        actual = self.local.status()
+        compare(expected=expected, actual=actual)
+
+    def test_move(self):
+        self.local.move('initial.txt', 'moved.txt')
+        expected = [
+            _STATUS_ENTRY(
+                name=self.dir.getpath('fakecheckout/initial.txt'),
+                type_raw_name='deleted',
+                type=3,
+                revision=1),
+            _STATUS_ENTRY(
+                name=self.dir.getpath('fakecheckout/moved.txt'),
+                type_raw_name='added',
+                type=1,
+                revision=None),
+            ]
+        actual = self.local.status()
+        compare(expected=expected, actual=actual)
+
     def test_commit(self):
         self.dir.write('fakecheckout/testfile1.txt', b'testdata_for_commit')
         self.local.add('testfile1.txt')
@@ -62,16 +91,4 @@ class TestLocalClient(unittest.TestCase):
                 author=getuser(),
                 changelist=None),
             ]
-        compare(expected=expected, actual=actual)
-
-    def test_delete(self):
-        self.local.delete('initial.txt')
-        expected = [
-            _STATUS_ENTRY(
-                name=self.dir.getpath('fakecheckout/initial.txt'),
-                type_raw_name='deleted',
-                type=3,
-                revision=1),
-            ]
-        actual = self.local.status()
         compare(expected=expected, actual=actual)

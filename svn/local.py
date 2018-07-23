@@ -43,6 +43,12 @@ class LocalClient(svn.common.CommonClient):
             [rel_path],
             wd=self.path)
 
+    def move(self, rel_path_old, rel_path_new):
+        self.run_command(
+            'move',
+            [rel_path_old, rel_path_new],
+            wd=self.path)
+
     def commit(self, message, rel_filepaths=[]):
         args = ['-m', message] + rel_filepaths
 
