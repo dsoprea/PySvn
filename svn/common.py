@@ -20,6 +20,9 @@ _STATUS_ENTRY = \
             'type',
             'revision',
         ])
+LOG_ENTRY = collections.namedtuple(
+    'LogEntry',
+    ('date', 'msg', 'revision', 'author', 'changelist'))
 
 
 class CommonClient(svn.common_base.CommonBase):
@@ -245,10 +248,6 @@ class CommonClient(svn.common_base.CommonBase):
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
-        named_fields = ['date', 'msg', 'revision', 'author', 'changelist']
-        c = collections.namedtuple(
-            'LogEntry',
-            named_fields)
 
         # Merge history can create nested log entries, so use iter instead of findall
         for e in root.iter('logentry'):
@@ -275,7 +274,7 @@ class CommonClient(svn.common_base.CommonBase):
             else:
                 log_entry['changelist'] = None
 
-            yield c(**log_entry)
+            yield LOG_ENTRY(**log_entry)
 
     def export(self, to_path, revision=None, force=False):
         cmd = []
