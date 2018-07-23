@@ -9,8 +9,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CommonBase(object):
-    def external_command(self, cmd, success_code=0, do_combine=False, 
-                         return_binary=False, environment={}, wd=None):
+
+    @staticmethod
+    def external_command_staticmethod(
+            cmd, success_code=0, do_combine=False,
+            return_binary=False, environment={}, wd=None):
         _LOGGER.debug("RUN: %s" % (cmd,))
 
         env = os.environ.copy()
@@ -37,6 +40,9 @@ class CommonBase(object):
             return stdout
 
         return stdout.decode().strip('\n').split('\n')
+
+    def external_command(self, *args, **kwargs):
+        return CommonBase.external_command_staticmethod(*args, **kwargs)
 
     def rows_to_dict(self, rows, lc=True):
         d = {}

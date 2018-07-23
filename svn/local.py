@@ -17,6 +17,20 @@ class LocalClient(svn.common.CommonClient):
     def __repr__(self):
         return '<SVN(LOCAL) %s>' % self.path
 
+    @staticmethod
+    def checkout(repo_path, checkout_path, *args, **kwargs):
+        def urlize(path):
+            return "file://" + os.path.abspath(path)
+        cmdlist = [
+            'svn',  # {TODO: allow variance in a standard way here}
+            '--non-interactive',
+            'checkout',
+            urlize(repo_path),
+            checkout_path,
+        ]
+        LocalClient.external_command_staticmethod(cmdlist)
+        return LocalClient(checkout_path, *args, **kwargs)
+
     def add(self, rel_path):
         self.run_command(
             'add',
