@@ -1,4 +1,5 @@
 import unittest
+from getpass import getuser
 
 from testfixtures import (
     compare,
@@ -7,7 +8,10 @@ from testfixtures import (
 
 import svn.local
 import svn.admin
-from svn.common import _STATUS_ENTRY
+from svn.common import (
+    _STATUS_ENTRY,
+    LOG_ENTRY,
+    )
 
 
 class TestLocalClient(unittest.TestCase):
@@ -36,12 +40,23 @@ class TestLocalClient(unittest.TestCase):
         actual = self.local.status()
         compare(expected=expected, actual=actual)
 
-    # Commenting out until I have a .log method later
-    # def test_commit(self):
-    #     self.dir.write('fakecheckout/testfile1.txt', 'testdata_for_commit')
-    #     self.local.add('testfile1.txt')
-    #     self.local.commit('fakemessage')
-    #     self.local.update()
-    #     expected = 'todo'
-    #     actual = self.local.log()
-    #     compare(expected=expected, actual=actual)
+    def test_commit(self):
+        self.dir.write('fakecheckout/testfile1.txt', 'testdata_for_commit')
+        self.local.add('testfile1.txt')
+        self.local.commit('fakemessage')
+        self.local.update()
+        actual = list(self.local.log_default(limit=1))
+        expected = [
+            LOG_ENTRY(
+                # This (grabbing our expected from a component in
+                # actual) is quite naughty, but I don't yet want to
+                # write a custom comparer for integration tests where
+                # dates are real.
+                date=actual[0].date,
+                # Back to more orthodox testing...
+                msg='fakemessage',
+                revision=1,
+                author=getuser(),
+                changelist=None),
+            ]
+        compare(expected=expected, actual=actual)
