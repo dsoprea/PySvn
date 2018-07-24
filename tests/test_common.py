@@ -282,6 +282,17 @@ class TestCommonClient(unittest.TestCase):
             cc.log_default(revision_from=1761404, revision_to=1761403)
         self.assertEqual(next(actual_answer).author, 'sseifert')
 
+    def test_search(self):
+        """
+        Checking log search
+        :return:
+        """
+
+        cc = self.__get_cc()
+        actual_answer = \
+            cc.log_default(search='Get ready to tag httpd 2.4.34', revision_from=1835550, revision_to=1836000)
+        self.assertEqual(next(actual_answer).author, 'jim')
+
     def test_cat(self):
         """
         Checking cat
