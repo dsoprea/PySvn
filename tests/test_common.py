@@ -335,3 +335,33 @@ class TestCommonClient(unittest.TestCase):
 
     def test_cleanup(self):
         self.__temp_lc.cleanup()
+
+    def test_properties(self):  
+        '''Tests CommonClient.properties() and LocalClient.propset()'''
+        l = self.__temp_lc
+
+        # Test propset with rel_path omitted
+        self.assertTrue('prop1' not in l.properties())
+        l.propset('prop1', 'value1')
+        self.assertTrue('prop1' in l.properties() and
+                        l.properties()['prop1'] == 'value1')
+
+        # Add a file
+        filepath = os.path.join(self.__temp_co_path, 'propfile2')
+        with open(filepath, 'w') as f:
+            pass
+
+        l.add('propfile2')
+
+        # properties should be empty until we add some
+        self.assertTrue(l.properties(rel_path='propfile2') == {})
+
+        # Test with rel_path='propfile2'
+        self.assertTrue('prop2' not in l.properties(rel_path='propfile2'))
+        l.propset('prop2', 'value2', rel_path='propfile2')
+        self.assertTrue('prop2' in l.properties(rel_path='propfile2') and 
+                        l.properties(rel_path='propfile2')['prop2'] == 'value2')
+
+        # Cross-check
+        self.assertTrue('prop1' not in l.properties(rel_path='propfile2'))
+        self.assertTrue('prop2' not in l.properties())

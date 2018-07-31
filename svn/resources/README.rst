@@ -20,6 +20,7 @@ Functions currently implemented:
 - cat
 - diff
 - diff_summary
+- propset
 - status
 - add
 - commit
