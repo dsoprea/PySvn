@@ -46,3 +46,13 @@ class LocalClient(svn.common.CommonClient):
             'cleanup',
             [],
             wd=self.path)
+
+    def propset(self, property_name, property_value, rel_path=None):
+        '''Set a property on a relative path'''
+        if rel_path is None:
+            rel_path = '.'
+            
+        self.run_command(
+            'propset',
+            [property_name, property_value, rel_path],
+            wd=self.path)
