@@ -79,7 +79,7 @@ class TestCommonClient(unittest.TestCase):
             _LOGGER.exception("Could not cleanup temporary repository path: [%s]", self.__temp_repo_path)
 
     def __stage_co_directory_1(self):
-        """Establish a new file, an added file, a committed file, and a changed file."""
+        """Establish a new file, an added file, a committed file, a changed file, and an ignored file."""
 
         # Create a file that will not be committed.
 
@@ -117,6 +117,15 @@ class TestCommonClient(unittest.TestCase):
 
         self.__temp_lc.add(rel_filepath_deleted)
 
+        # Create a file that will be ignored
+
+        rel_filepath_ignored = 'ignored'
+        filepath = os.path.join(self.__temp_co_path, rel_filepath_ignored)
+        with open(filepath, 'w') as f:
+            pass
+
+        self.__temp_lc.propset('svn:ignore', 'ignored')
+
         # Commit the new files.
 
         self.__temp_lc.commit("Initial commit.")
@@ -143,11 +152,18 @@ class TestCommonClient(unittest.TestCase):
 
         self.__temp_lc.add(rel_filepath)
 
+        # Create a file that will not be added
+
+        rel_filepath = 'unversioned'
+        filepath = os.path.join(self.__temp_co_path, rel_filepath)
+        with open(filepath, 'w') as f:
+            pass
+
     def test_status(self):
         self.__stage_co_directory_1()
 
         status = {}
-        for s in self.__temp_lc.status():
+        for s in self.__temp_lc.status(no_ignore=True):
             _LOGGER.debug("STATUS: %s", s)
 
             filename = os.path.basename(s.name)
@@ -161,6 +177,27 @@ class TestCommonClient(unittest.TestCase):
 
         committed_deleted = status['committed_deleted']
         self.assertTrue(committed_deleted is not None and committed_deleted.type == svn.constants.ST_MISSING)
+
+        ignored = status['ignored']
+        self.assertTrue(ignored is not None and ignored.type == svn.constants.ST_IGNORED)
+
+        ignored = status['unversioned']
+        self.assertTrue(ignored is not None and ignored.type == svn.constants.ST_UNVERSIONED)
+
+        # Test that ignored files are hidden when no_ignore=False
+        status = {}
+        for s in self.__temp_lc.status():
+            _LOGGER.debug("STATUS: %s", s)
+
+            filename = os.path.basename(s.name)
+            status[filename] = s
+
+        self.assertTrue('ignored' not in status)
+
+        # ..but spot check that others are not hidden
+        added = status['added']
+        self.assertTrue(added is not None and added.type == svn.constants.ST_ADDED)
+
 
     def test_update(self):
         self.__stage_co_directory_1()

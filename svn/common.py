@@ -293,14 +293,17 @@ class CommonClient(svn.common_base.CommonBase):
 
         self.run_command('export', cmd)
 
-    def status(self, rel_path=None):
+    def status(self, rel_path=None, no_ignore=False):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
+        cmd = ['--xml', full_url_or_path]
+        cmd.append('--no-ignore') if no_ignore else None
+
         raw = self.run_command(
             'status',
-            ['--xml', full_url_or_path],
+            cmd,
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(raw)
