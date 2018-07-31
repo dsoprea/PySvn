@@ -332,14 +332,18 @@ class CommonClient(svn.common_base.CommonBase):
             }
             yield info
 
-    def status(self, rel_path=None, include_changelists=False):
+    def status(self, rel_path=None, no_ignore=False, include_changelists=False):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
+        cmd = ['--xml', full_url_or_path]
+        if no_ignore:
+            cmd.append('--no-ignore')
+
         raw = self.run_command(
             'status',
-            ['--xml', full_url_or_path],
+            cmd,
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(raw)
