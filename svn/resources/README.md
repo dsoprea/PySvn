@@ -25,6 +25,7 @@ Functions currently implemented:
 - update
 - cleanup
 - remove (i.e. rm, del, delete)
+- blame
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a
 `create` method with which to create repositories.
@@ -266,6 +267,26 @@ for rel_path, e in l.list_recursive():
 # 'name': 'cc',
 # 'size': 0,
 # 'timestamp': datetime.datetime(2015, 4, 24, 3, 25, 13, 479212, tzinfo=tzutc())}
+```
+
+### blame(rel_filepath, revision=None)
+
+Blame specified file.
+
+```
+import pprint
+import svn.local
+
+lc = svn.local.LocalClient('/tmp/test_repo.co')
+
+for line_info in lc.blame("version.py"):
+    pprint.pprint(line_info)
+
+# {
+#    'line_number': 1,
+#    'commit_revision': 1222,
+#    'commit_author': 'codeskyblue',
+#    'commit_date': datetime.datetime(2018, 12, 20, 3, 25, 13, 479212, tzinfo=tzutc())}
 ```
 
 

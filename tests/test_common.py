@@ -208,6 +208,22 @@ class TestCommonClient(unittest.TestCase):
                 except:
                     pass
 
+    def test_blame(self):
+        with svn.test_support.temp_common() as (_, _, cc):
+            f = svn.test_support.populate_bigger_file_change1()
+            actual_answer = cc.blame(f, revision_to=2)
+            line1 = next(actual_answer)
+            for i in range(5):
+                # find the modified line
+                line6 = next(actual_answer)
+            line7 = next(actual_answer)
+            self.assertEqual(line1['line_number'], 1)
+            self.assertEqual(line1['commit_revision'], 1)
+            self.assertEqual(line1['commit_author'], line7['commit_author'])
+
+            self.assertEqual(line6['line_number'], 6)
+            self.assertEqual(line6['commit_revision'], 2)
+        
     def test_force__export(self):
         with svn.test_support.temp_common() as (_, _, cc):
             svn.test_support.populate_bigger_file_changes1()
