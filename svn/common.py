@@ -288,16 +288,29 @@ class CommonClient(svn.common_base.CommonBase):
 
         self.run_command('export', cmd)
     
-    def blame(self, rel_filepath, revision=None):
+    def blame(self, rel_filepath, 
+            revision_from=None, revision_to=None):
+        """
+        svn usage: blame [-r M:N] TARGET[@REV]
+        """
+
         full_url_or_path = self.__url_or_path + "/" + rel_filepath
-        if revision is not None:
-            full_url_or_path += "@"+str(revision)
         
+        args = []
+        if revision_from or revision_to:
+            if not revision_from:
+                revision_from = '1'
+
+            if not revision_to:
+                revision_to = 'HEAD'
+
+            args += ['-r', str(revision_from) + ':' + str(revision_to)]
+
         result = self.run_command(
-            "blame", ["--xml", full_url_or_path], do_combine=True)
-            
+            "blame", args + ["--xml", full_url_or_path], do_combine=True)
+
         root = xml.etree.ElementTree.fromstring(result)
-        blames = []
+
         for entry in root.findall("target/entry"):
             commit = entry.find("commit")
             author = entry.find("commit/author")
@@ -308,8 +321,7 @@ class CommonClient(svn.common_base.CommonBase):
                     entry.find("commit/date").text),
                 "commit_revision": int(commit.attrib["revision"]),
             }
-            blames.append(info)
-        return blames
+            yield info
 
     def status(self, rel_path=None):
         full_url_or_path = self.__url_or_path

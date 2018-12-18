@@ -257,7 +257,15 @@ class TestCommonClient(unittest.TestCase):
         self.assertEqual(
             actual_answer['repository/uuid'],
             '13f79535-47bb-0310-9956-ffa450edef68')
-
+    
+    def test_blame(self):
+        cc = self.__get_cc()
+        actual_answer = cc.blame('abdera/abdera2/README', revision_to=1173209)
+        ans = next(actual_answer)
+        self.assertEqual(ans['line_number'], 1)
+        self.assertEqual(ans['commit_revision'], 1173209)
+        self.assertEqual(ans['commit_author'], 'jmsne11')
+        
     def test_info_revision(self):
         cc = self.__get_cc()
         actual_answer = cc.info(revision=1000000)
