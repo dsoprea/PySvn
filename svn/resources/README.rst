@@ -27,6 +27,7 @@ Functions currently implemented:
 - commit
 - update
 - cleanup
+- blame
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a `create` method with which to create repositories.
 
@@ -279,6 +280,24 @@ diff(start_revision,  end_revision)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finds all the diff between start and end revision id. Here another key of 'diff' is added which shows the diff of files.
+
+blame(rel_filepath, revision=None)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Blame specified file ::
+
+    import svn.local
+
+    l = svn.local.LocalClient('/tmp/test_repo.co')
+    
+    for line_info in l.blame("version.py"):
+        print(line_info)
+
+        # {
+        #    'line_number': 1,
+        #    'commit_revision': 1222,
+        #    'commit_author': 'codeskyblue',
+        #    'commit_date': datetime.datetime(2018, 12, 20, 3, 25, 13, 479212, tzinfo=tzutc())}
 
 .. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
    :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !

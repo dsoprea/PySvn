@@ -287,6 +287,29 @@ class CommonClient(svn.common_base.CommonBase):
         cmd.append('--force') if force else None
 
         self.run_command('export', cmd)
+    
+    def blame(self, rel_filepath, revision=None):
+        full_url_or_path = self.__url_or_path + "/" + rel_filepath
+        if revision is not None:
+            full_url_or_path += "@"+str(revision)
+        
+        result = self.run_command(
+            "blame", ["--xml", full_url_or_path], do_combine=True)
+            
+        root = xml.etree.ElementTree.fromstring(result)
+        blames = []
+        for entry in root.findall("target/entry"):
+            commit = entry.find("commit")
+            author = entry.find("commit/author")
+            info = {
+                'line_number': int(entry.attrib['line-number']),
+                "commit_author": self.__element_text(author),
+                "commit_date": dateutil.parser.parse(
+                    entry.find("commit/date").text),
+                "commit_revision": int(commit.attrib["revision"]),
+            }
+            blames.append(info)
+        return blames
 
     def status(self, rel_path=None):
         full_url_or_path = self.__url_or_path
