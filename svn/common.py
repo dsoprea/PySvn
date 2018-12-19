@@ -308,17 +308,19 @@ class CommonClient(svn.common_base.CommonBase):
 
         result = self.run_command(
             "blame", args + ["--xml", full_url_or_path], do_combine=True)
-
+        
         root = xml.etree.ElementTree.fromstring(result)
 
         for entry in root.findall("target/entry"):
             commit = entry.find("commit")
             author = entry.find("commit/author")
+            date_ = entry.find("commit/date")
+            if author is None or date_ is None:
+                continue
             info = {
                 'line_number': int(entry.attrib['line-number']),
                 "commit_author": self.__element_text(author),
-                "commit_date": dateutil.parser.parse(
-                    entry.find("commit/date").text),
+                "commit_date": dateutil.parser.parse(date_.text),
                 "commit_revision": int(commit.attrib["revision"]),
             }
             yield info
