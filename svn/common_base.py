@@ -12,6 +12,7 @@ class CommonBase(object):
     def external_command(self, cmd, success_code=0, do_combine=False, 
                          return_binary=False, environment={}, wd=None):
         _LOGGER.debug("RUN: %s" % (cmd,))
+        # print("RUN:", cmd)
 
         env = os.environ.copy()
         env['LANG'] = svn.config.CONSOLE_ENCODING
