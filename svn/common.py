@@ -328,7 +328,7 @@ class CommonClient(svn.common_base.CommonBase):
             }
             yield info
 
-    def status(self, rel_path=None):
+    def status(self, rel_path=None, include_changelists=False):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
@@ -341,6 +341,9 @@ class CommonClient(svn.common_base.CommonBase):
         root = xml.etree.ElementTree.fromstring(raw)
 
         list_ = root.findall('target/entry')
+        if include_changelists is True:
+            list_ += root.findall('changelist/entry')
+
         for entry in list_:
             entry_attr = entry.attrib
             name = entry_attr['path']
