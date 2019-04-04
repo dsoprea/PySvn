@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import logging
 
@@ -17,13 +18,22 @@ class CommonBase(object):
         env['LANG'] = svn.config.CONSOLE_ENCODING
         env.update(environment)
 
-        p = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            cwd=wd,
-            env=env)
+        kwargs = {
+            'stdout': subprocess.PIPE,
+            'stderr': subprocess.STDOUT,
+            'cwd': wd,
+            'env': env,
+        }
 
+        try:
+            # Don't open Command Prompt on Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            kwargs['startupinfo'] = startupinfo
+        except AttributeError:
+            pass
+
+        p = subprocess.Popen(cmd, **kwargs)
         stdout = p.stdout.read()
         r = p.wait()
         p.stdout.close()
