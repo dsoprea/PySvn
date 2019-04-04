@@ -17,12 +17,16 @@ class CommonBase(object):
         env['LANG'] = svn.config.CONSOLE_ENCODING
         env.update(environment)
 
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             cwd=wd,
-            env=env)
+            env=env,
+            startupinfo=startupinfo)
 
         stdout = p.stdout.read()
         r = p.wait()
