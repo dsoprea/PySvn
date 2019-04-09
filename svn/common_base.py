@@ -18,25 +18,22 @@ class CommonBase(object):
         env['LANG'] = svn.config.CONSOLE_ENCODING
         env.update(environment)
 
-        if sys.platform.lower().startswith('win'):
+        kwargs = {
+            'stdout': subprocess.PIPE,
+            'stderr': subprocess.STDOUT,
+            'cwd': wd,
+            'env': env,
+        }
+
+        try:
+            # Don't open Command Prompt on Windows
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            kwargs['startupinfo'] = startupinfo
+        except AttributeError:
+            pass
 
-            p = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                cwd=wd,
-                env=env,
-                startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                cwd=wd,
-                env=env)
-
+        p = subprocess.Popen(cmd, **kwargs)
         stdout = p.stdout.read()
         r = p.wait()
         p.stdout.close()
