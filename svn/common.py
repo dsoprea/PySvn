@@ -39,7 +39,7 @@ class CommonClient(svn.common_base.CommonBase):
         self.__type = type_
 
     def run_command(self, subcommand, args, **kwargs):
-        cmd = [self.__svn_filepath, '--non-interactive']
+        cmd = [self.__svn_filepath]
 
         if self.__trust_cert:
             cmd += ['--trust-server-cert']
