@@ -20,18 +20,20 @@ class CommonBase(object):
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             cwd=wd,
             env=env)
 
         stdout = p.stdout.read()
+        stderr = p.stderr.read()
         r = p.wait()
         p.stdout.close()
+        p.stderr.close()
 
         if r != success_code:
             raise svn.exception.SvnException(
                 "Command failed with ({}): {}\n{}".format(
-                p.returncode, cmd, stdout))
+                p.returncode, cmd, stderr))
 
         if return_binary is True or do_combine is True:
             return stdout
