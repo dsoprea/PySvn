@@ -461,8 +461,7 @@ class CommonClient(svn.common_base.CommonBase):
             file_to_diff[split_diff[0].strip().strip('/')] = split_diff[-1].strip('=').strip()
         diff_summaries = self.diff_summary(old, new, rel_path)
         for diff_summary in diff_summaries:
-            diff_summary['diff'] = \
-                file_to_diff[diff_summary['path'].split(full_url_or_path)[-1].strip('/')]
+            diff_summary['diff'] = file_to_diff[diff_summary['path'].split('/')[-1]]
         return diff_summaries
 
     @property
