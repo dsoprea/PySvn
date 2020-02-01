@@ -282,3 +282,9 @@ Finds all the diff between start and end revision id. Here another key of 'diff'
    :target: https://travis-ci.org/dsoprea/PySvn
 .. |Coverage_Status| image:: https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master
    :target: https://coveralls.io/github/dsoprea/PySvn?branch=master
+
+-------------------------------
+Notice of Diff Reimplementation
+-------------------------------
+
+There was a previous contribution to the diff implementation that has been reported and confirmed to often throw an exception due to shoddy handling of the file-paths in the output. It also made secondary shell calls and mixed both text and XML output in the response. As a result of this, the decision has been made to just reimplement it and reshape the output in a backwards-incompatible way at the same time. If you need to stick to the older implementation, tie your dependencies to the 0.3.46 release.

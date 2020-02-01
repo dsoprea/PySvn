@@ -26,7 +26,7 @@ class LocalClient(svn.common.CommonClient):
     def commit(self, message, rel_filepaths=[]):
         args = ['-m', message] + rel_filepaths
 
-        self.run_command(
+        output = self.run_command(
             'commit',
             args,
             wd=self.path)
