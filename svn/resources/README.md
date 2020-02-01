@@ -296,7 +296,7 @@ print l.diff_summary(1760022, 1760023)
 Diffs between start and end revisions
 
 
-# Notice of Diff Reimplementation
+# Notice of Diff Reimplementation in 1.0.0
 
 There was a previous contribution to the diff implementation that has been
 reported and confirmed to often throw an exception due to shoddy handling of
