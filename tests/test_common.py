@@ -1,5 +1,3 @@
-__author__ = 'tusharmakkar08'
-
 import os
 import unittest
 import shutil
