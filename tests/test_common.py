@@ -316,35 +316,36 @@ laborum."
                 actual_answer == diff_summary_2)
 
     def test_diff(self):
-        """
-        Checking diff
-        :return:
-        """
+        with self._local_populated_test() as cc:
+            actual = \
+                cc.diff(
+                    2,
+                    3)
 
-        with self._apache_test():
-            cc = self.__get_cc()
-            actual_answer = \
-                cc.diff(self.test_start_revision, self.test_end_revision)
+            expected = {
+                u'committed_changed_big': {
+                    'hunks': [
+                        {
+                            'body': u' amet, consectetur\n adipiscing elit,\n sed do\n+!newline1\n eiusmod tempor\n incididunt ut\n labore et',
+                            'lines_phrase': u'@@ -3,6 +3,7 @@',
+                        },
+                        {
+                            'body': u' nulla pariatur.\n Excepteur sint\n occaecat cupidatat\n+!newline2\n non proident,\n sunt in\n culpa qui',
+                            'lines_phrase': u'@@ -26,6 +27,7 @@'
+                        },
+                    ],
+                    'left_phrase': [
+                        u'committed_changed_big',
+                        u'(revision 2)',
+                    ],
+                    'right_phrase': [
+                        u'committed_changed_big',
+                        u'(revision 3)'
+                    ]
+                }
+            }
 
-            for index, individual_diff in enumerate(actual_answer):
-                for diff_key in individual_diff:
-                    if diff_key == 'diff':
-                        self.assertTrue(
-                            'sling/trunk/bundles/extensions/models/pom.xml' \
-                                in individual_diff[diff_key] or \
-                            'sling/trunk/pom.xml' \
-                                in individual_diff[diff_key])
-                        self.assertTrue(
-                            '<module>bundles/extensions/models</module>' \
-                                in individual_diff[diff_key] or
-                            '<description>Apache Sling Models</description>' \
-                                in individual_diff[diff_key])
-                    elif diff_key == 'path':
-                        self.assertTrue(
-                            'http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml' \
-                                in individual_diff[diff_key] or \
-                            'http://svn.apache.org/repos/asf/sling/trunk/pom.xml' \
-                                in individual_diff[diff_key])
+            self.assertEqual(actual, expected)
 
     def test_list(self):
         """
