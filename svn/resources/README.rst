@@ -1,5 +1,3 @@
-|donate|
-
 |Build\_Status|
 |Coverage\_Status|
 
@@ -280,9 +278,6 @@ diff(start_revision,  end_revision)
 
 Finds all the diff between start and end revision id. Here another key of 'diff' is added which shows the diff of files.
 
-.. |donate| image:: https://pledgie.com/campaigns/31718.png?skin_name=chrome
-   :alt: Click here to lend your support to: PySvn and make a donation at pledgie.com !
-   :target: https://pledgie.com/campaigns/31718
 .. |Build_Status| image:: https://travis-ci.org/dsoprea/PySvn.svg?branch=master
    :target: https://travis-ci.org/dsoprea/PySvn
 .. |Coverage_Status| image:: https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master
