@@ -92,7 +92,7 @@ class TestCommonClient(unittest.TestCase):
         self.__temp_lc = svn.local.LocalClient(self.__temp_co_path)
 
     def __stage_co_directory_1(self):
-        """Establish a new file, an added file, a committed file, and a changed file."""
+        """Establish some history, a new file, an added file, a committed file, a changed file, and an ignored file."""
 
         # Create a file that will not be committed.
 
@@ -131,7 +131,25 @@ class TestCommonClient(unittest.TestCase):
         self.__temp_lc.add(rel_filepath_deleted)
 
         # Commit the new files.
+
+        rev = 0
         self.__temp_lc.commit("Initial commit.")
+        rev += 1
+
+        # Add some history
+        filepath = os.path.join(self.__temp_co_path, 'newfile')
+        with open(filepath, mode='w') as f:
+            f.writelines(['line1\n', 'line2\n'])
+        self.__temp_lc.add(filepath)
+        self.__temp_lc.commit("Add a file", [filepath])
+        rev += 1
+        self.local_test_start_revision = rev
+        with open(filepath, mode="a") as f:
+            f.writelines(['line3\n', 'line4\n'])
+        self.__temp_lc.commit("Add more content", [filepath])
+        rev += 1
+        self.local_test_end_revision = rev
+
 
         # Do an update to pick-up the changes from the commit.
         self.__temp_lc.update()
@@ -277,9 +295,11 @@ laborum."
     def test_update(self):
         with self._stage_repo():
             self.__stage_co_directory_1()
-            self.__temp_lc.commit("Second commit.")
+            rev = self.local_test_end_revision
+            self.__temp_lc.commit("Another commit.")
+            rev += 1
             self.__temp_lc.update()
-            self.assertEqual(2, self.__temp_lc.info()['commit_revision'])
+            self.assertEqual(rev, self.__temp_lc.info()['commit_revision'])
             self.__temp_lc.update(revision=1)
             self.assertEqual(1, self.__temp_lc.info()['commit_revision'])
 
@@ -315,7 +335,7 @@ laborum."
                 actual_answer == diff_summary or \
                 actual_answer == diff_summary_2)
 
-    def test_diff(self):
+    def test_diff_common(self):
         with self._local_populated_test() as cc:
             actual = \
                 cc.diff(
@@ -346,6 +366,26 @@ laborum."
             }
 
             self.assertEqual(actual, expected)
+
+    def test_diff_local(self):
+        """
+        Checking diff for LocalClient (file://)
+        :return:
+        """
+        with self._stage_repo():
+            self.__stage_co_directory_1()
+            actual = self.__temp_lc.diff(self.local_test_start_revision, self.local_test_end_revision)
+
+            self.assertEqual(len(actual), 1, 'Only one file should have changed: newfile.')
+
+            for blob in actual.values():
+                # diff and path should exist.
+                diff = blob['hunks'][0]['body']
+                path = blob['left_phrase'][0]
+                self.assertTrue(path.endswith('/newfile'), '__stage_co_directory_1 added a file called newfile')
+                self.assertTrue('line3' in diff, '__stage_co_directory_1 added "line3"')
+                self.assertTrue('line4' in diff, '__stage_co_directory_1 added "line4"')
+
 
     def test_list(self):
         """
