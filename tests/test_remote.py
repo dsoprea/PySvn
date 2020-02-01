@@ -25,12 +25,12 @@ class TestRemoteClient(unittest.TestCase):
             shutil.rmtree('trial')
 
     def test_error_client_formation(self):
-        """
-        Testing Value error while client formation
-        :return:
-        """
-        with self.assertRaises(svn.exception.SvnException):
+        try:
             svn.remote.RemoteClient(self.test_fake_url).checkout('.')
+        except svn.exception.SvnException:
+            pass
+        else:
+            raise Exception("Expected exception for bad URL.")
 
     def test_checkout(self):
         """
