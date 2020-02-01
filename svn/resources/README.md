@@ -1,6 +1,4 @@
-[![Build_Status](https://travis-ci.org/dsoprea/PySvn.svg?branch=master)](https://travis-ci.org/dsoprea/PySvn)
-
-[![Coverage_Status](https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master)](https://coveralls.io/github/dsoprea/PySvn?branch=master)
+[![Build_Status](https://travis-ci.org/dsoprea/PySvn.svg?branch=master)](https://travis-ci.org/dsoprea/PySvn) [![Coverage_Status](https://coveralls.io/repos/github/dsoprea/PySvn/badge.svg?branch=master)](https://coveralls.io/github/dsoprea/PySvn?branch=master)
 
 
 # Introduction
