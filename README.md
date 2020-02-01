@@ -1,1 +1,1 @@
-svn/resources/README.rst
+svn/resources/README.md
