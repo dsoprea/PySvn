@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CommonBase(object):
-    def external_command(self, cmd, success_code=0, do_combine=False, 
+    def external_command(self, cmd, success_code=0, do_combine=False,
                          return_binary=False, environment={}, wd=None):
         _LOGGER.debug("RUN: %s" % (cmd,))
 
@@ -17,26 +17,31 @@ class CommonBase(object):
         env['LANG'] = svn.config.CONSOLE_ENCODING
         env.update(environment)
 
-        p = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            cwd=wd,
-            env=env)
+        decode_text = return_binary is False
 
-        stdout = p.stdout.read()
-        r = p.wait()
-        p.stdout.close()
+        try:
+            stdout = \
+                subprocess.check_output(
+                    cmd,
+                    cwd=wd,
+                    env=env,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=decode_text)
+        except subprocess.CalledProcessError as cpe:
+            stdout = cpe.output
+            return_code = cpe.returncode
+        else:
+            return_code = 0
 
-        if r != success_code:
+        if return_code != 0:
             raise svn.exception.SvnException(
                 "Command failed with ({}): {}\n{}".format(
-                p.returncode, cmd, stdout))
+                return_code, cmd, stdout))
 
         if return_binary is True or do_combine is True:
             return stdout
 
-        return stdout.decode().strip('\n').split('\n')
+        return stdout.strip('\n').split('\n')
 
     def rows_to_dict(self, rows, lc=True):
         d = {}

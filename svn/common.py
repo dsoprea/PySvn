@@ -475,7 +475,6 @@ class CommonClient(svn.common_base.CommonBase):
             'diff', arguments,
             do_combine=True)
 
-        diff_result = diff_result.decode('utf8')
         diff_result = diff_result.strip()
 
         # Split the hunks.
