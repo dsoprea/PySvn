@@ -23,9 +23,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TestCommonClient(unittest.TestCase):
-    """
-    For testing svn/common.py
-    """
+    def __init__(self, *args, **kwargs):
+        self.maxDiff = None
+        super(TestCommonClient, self).__init__(*args, **kwargs)
 
     def shortDescription(self):
         return None
