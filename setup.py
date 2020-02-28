@@ -30,6 +30,7 @@ setuptools.setup(
         'svn': [
             'resources/README.md',
             'resources/requirements.txt',
+            'resources/requirements-testing.txt',
         ],
     },
     install_requires=install_requires,
