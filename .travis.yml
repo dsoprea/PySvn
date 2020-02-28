@@ -10,6 +10,6 @@ python:
 install:
   - pip install -r svn/resources/requirements.txt
   - pip install coveralls
-script: nosetests --with-coverage --cover-package=svn
+script: nosetests -s -v --with-coverage --cover-package=svn
 after_success:
   - coveralls
