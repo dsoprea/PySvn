@@ -9,34 +9,47 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CommonBase(object):
-    def external_command(self, cmd, success_code=0, do_combine=False,
-                         return_binary=False, environment={}, wd=None):
+    def external_command(
+            self, cmd, success_code=0, do_combine=False, return_binary=False,
+            environment={}, wd=None, do_discard_stderr=True):
         _LOGGER.debug("RUN: %s" % (cmd,))
 
         env = os.environ.copy()
-        env['LANG'] = svn.config.CONSOLE_ENCODING
+
+        lang = os.environ.get('LANG', svn.config.CONSOLE_ENCODING)
+        env['LANG'] = lang
+
         env.update(environment)
 
         decode_text = return_binary is False
 
-        try:
-            stdout = \
-                subprocess.check_output(
-                    cmd,
-                    cwd=wd,
-                    env=env,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=decode_text)
-        except subprocess.CalledProcessError as cpe:
-            stdout = cpe.output
-            return_code = cpe.returncode
+        kwargs = {}
+
+        if do_discard_stderr is True:
+            kwargs['stderr'] = subprocess.PIPE
         else:
-            return_code = 0
+            kwargs['stderr'] = subprocess.STDOUT
+
+        p = \
+            subprocess.Popen(
+                cmd,
+                cwd=wd,
+                env=env,
+                stdout=subprocess.PIPE,
+                universal_newlines=decode_text,
+                **kwargs)
+
+        stdout, stderr = p.communicate()
+        return_code = p.returncode
 
         if return_code != 0:
+            # do_discard_stderr is False
+            if stderr is None:
+                stderr = "<combined with STDOUT, above>"
+
             raise svn.exception.SvnException(
-                "Command failed with ({}): {}\n{}".format(
-                return_code, cmd, stdout))
+                "Command failed with ({}): {}\nSTDOUT:\n\n{}\nSTDERR:\n\n{}".format(
+                return_code, cmd, stdout, stderr))
 
         if return_binary is True or do_combine is True:
             return stdout
