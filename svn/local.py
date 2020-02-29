@@ -29,10 +29,15 @@ class LocalClient(svn.common.CommonClient):
     def __repr__(self):
         return '<SVN(LOCAL) %s>' % self.path
 
-    def add(self, rel_path):
+    def add(self, rel_path, do_include_parents=False):
+        args = [rel_path]
+
+        if do_include_parents is True:
+            args.append('--parents')
+
         self.run_command(
             'add',
-            [rel_path],
+            args,
             wd=self.path)
 
     def commit(self, message, rel_filepaths=[]):
