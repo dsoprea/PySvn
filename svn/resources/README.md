@@ -18,13 +18,13 @@ Functions currently implemented:
 - checkout
 - export
 - cat
-- diff
-- diff_summary
+- diff (with raw and summary support)
 - status
 - add
 - commit
 - update
 - cleanup
+- remove (i.e. rm, del, delete)
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a
 `create` method with which to create repositories.
