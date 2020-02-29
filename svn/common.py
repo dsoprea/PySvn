@@ -450,7 +450,9 @@ class CommonClient(svn.common_base.CommonBase):
         hunks = {}
 
         def _process_hunk(file_hunk_raw):
+            # hunks_info will be `None` for file-adds.
             filepath, hunks_info = self._split_file_hunk(file_hunk_raw)
+
             hunks[filepath] = hunks_info
 
         while True:
@@ -483,6 +485,14 @@ class CommonClient(svn.common_base.CommonBase):
         # Index: /tmp/testsvnwc/bb
         # ===================================================================
         filepath = lines[0][len(_FILE_HUNK_PREFIX):]
+
+        # File was added. We have the file-hunk header but no actual hunks.
+        if len(lines) == 3:
+            assert \
+                lines[2] == '', \
+                "Empty diff expects third line to be empty:\n{}".format(lines)
+
+            return filepath, None
 
         assert \
             lines[2].startswith(_HUNK_HEADER_LEFT_PREFIX), \
