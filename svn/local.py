@@ -1,7 +1,19 @@
-import os.path
+import os
+import collections
+
+import xml.etree
 
 import svn.constants
 import svn.common
+
+_STATUS_ENTRY = \
+    collections.namedtuple(
+        '_STATUS_ENTRY', [
+            'name',
+            'type_raw_name',
+            'type',
+            'revision',
+        ])
 
 
 class LocalClient(svn.common.CommonClient):
@@ -46,3 +58,39 @@ class LocalClient(svn.common.CommonClient):
             'cleanup',
             [],
             wd=self.path)
+
+    def status(self, rel_path=None):
+        path = self.path
+        if rel_path is not None:
+            path += '/' + rel_path
+
+        raw = self.run_command(
+            'status',
+            ['--xml', path],
+            do_combine=True)
+
+        root = xml.etree.ElementTree.fromstring(raw)
+
+        list_ = root.findall('target/entry')
+        for entry in list_:
+            entry_attr = entry.attrib
+            name = entry_attr['path']
+
+            wcstatus = entry.find('wc-status')
+            wcstatus_attr = wcstatus.attrib
+
+            change_type_raw = wcstatus_attr['item']
+            change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
+
+            # This will be absent if the file is "unversioned". It'll be "-1"
+            # if added but not committed.
+            revision = wcstatus_attr.get('revision')
+            if revision is not None:
+                revision = int(revision)
+
+            yield _STATUS_ENTRY(
+                name=name,
+                type_raw_name=change_type_raw,
+                type=change_type,
+                revision=revision
+            )

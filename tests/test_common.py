@@ -254,26 +254,6 @@ laborum."
         # Do an update to pick-up the changes from the commit.
         self.__temp_lc.update()
 
-    def test_status(self):
-        with self._stage_repo():
-            self.__stage_co_directory_1()
-
-            status = {}
-            for s in self.__temp_lc.status():
-                _LOGGER.debug("STATUS: %s", s)
-
-                filename = os.path.basename(s.name)
-                status[filename] = s
-
-            added = status['added']
-            self.assertTrue(added is not None and added.type == svn.constants.ST_ADDED)
-
-            committed_changed = status['committed_changed']
-            self.assertTrue(committed_changed is not None and committed_changed.type == svn.constants.ST_MODIFIED)
-
-            committed_deleted = status['committed_deleted']
-            self.assertTrue(committed_deleted is not None and committed_deleted.type == svn.constants.ST_MISSING)
-
     def test_update(self):
         with self._stage_repo():
             self.__stage_co_directory_1()
