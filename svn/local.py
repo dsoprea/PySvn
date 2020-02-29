@@ -94,3 +94,20 @@ class LocalClient(svn.common.CommonClient):
                 type=change_type,
                 revision=revision
             )
+
+    def remove(self, rel_path, do_keep_local=False, do_force=False):
+        args = []
+
+        if do_keep_local is True:
+            args.append('--keep-local')
+
+        if do_force is True:
+            args.append('--force')
+
+        args += [
+            rel_path
+        ]
+
+        self.run_command(
+            'rm',
+            args)
