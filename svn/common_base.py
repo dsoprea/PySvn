@@ -1,5 +1,8 @@
+
 import os
+import platform
 import subprocess
+import sys
 import logging
 
 import svn.config
@@ -29,6 +32,13 @@ class CommonBase(object):
             kwargs['stderr'] = subprocess.PIPE
         else:
             kwargs['stderr'] = subprocess.STDOUT
+
+        # This allows correct decoding of commit messages on Windows
+        # subprocess.Popen defaults to locale.getpreferredencoding()
+        # which can be cp1252 (for example)
+        if (decode_text and platform.system() == "Windows"
+                and sys.version_info >= (3, 6)):
+            kwargs['encoding'] = 'utf-8'
 
         p = \
             subprocess.Popen(
