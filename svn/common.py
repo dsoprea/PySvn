@@ -42,7 +42,7 @@ class CommonClient(svn.common_base.CommonBase):
         cmd = [self.__svn_filepath]
 
         if self.__trust_cert:
-            cmd += ['--trust-server-cert']
+            cmd += ['--trust-server-cert', '--non-interactive']
 
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
