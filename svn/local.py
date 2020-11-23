@@ -13,6 +13,7 @@ _STATUS_ENTRY = \
             'type_raw_name',
             'type',
             'revision',
+            'changelist',
         ])
 
 
@@ -77,7 +78,7 @@ class LocalClient(svn.common.CommonClient):
         root = xml.etree.ElementTree.fromstring(raw)
 
         list_ = root.findall('target/entry')
-        for entry in list_:
+        def make_status(entry, changelist):
             entry_attr = entry.attrib
             name = entry_attr['path']
 
@@ -93,12 +94,20 @@ class LocalClient(svn.common.CommonClient):
             if revision is not None:
                 revision = int(revision)
 
-            yield _STATUS_ENTRY(
+            return _STATUS_ENTRY(
                 name=name,
                 type_raw_name=change_type_raw,
                 type=change_type,
-                revision=revision
+                revision=revision,
+                changelist=changelist,
             )
+        for entry in list_:
+            yield make_status(entry, None)
+        changes = root.findall('changelist')
+        for c in changes:
+            cl_name = c.attrib['name']
+            for entry in c:
+                yield make_status(entry, cl_name)
 
     def remove(self, rel_path, do_keep_local=False, do_force=False):
         args = []
