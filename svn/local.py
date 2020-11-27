@@ -116,3 +116,29 @@ class LocalClient(svn.common.CommonClient):
         self.run_command(
             'rm',
             args)
+
+    def lock(self, rel_filepaths=[], do_force=False):
+        args = []
+
+        if do_force is True:
+            args.append('--force')
+
+        args += rel_filepaths
+
+        self.run_command(
+            'lock',
+            args,
+            wd=self.path)
+
+    def unlock(self, rel_filepaths=[], do_force=False):
+        args = []
+
+        if do_force is True:
+            args.append('--force')
+
+        args += rel_filepaths
+
+        self.run_command(
+            'unlock',
+            args,
+            wd=self.path)
