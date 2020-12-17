@@ -12,19 +12,22 @@ installed on the local system.
 
 Functions currently implemented:
 
-- list
-- info
-- log
-- checkout
-- export
-- cat
-- diff (with raw and summary support)
-- status
 - add
-- commit
-- update
+- cat
+- checkout
 - cleanup
+- commit
+- export
+- diff (with raw and summary support)
+- info
+- list
+- log
+- propdel
+- propget
+- propset
 - remove (i.e. rm, del, delete)
+- status
+- update
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a
 `create` method with which to create repositories.
@@ -53,19 +56,43 @@ constructor and utility function.
 
 *LocalClient* allows access to a local working copy.
 
+The following methods are available for a local client.
+
+### add(rel_path, do_include_parents=False)
+
+Add files or directories to the repository.
+ 
+### cleanup()
+
+Recursively clean up the working copy.
+
+
+### commit(message, rel_filepaths=[])
+
+Send changes from your working copy to the repository.
+
+
+### remove(rel_path, do_keep_local=False, do_force=False)
+
+Delete/remove an item from a working copy
+
+
+### status(rel_path=None)
+
+Return the status of working copy files and directories.
+
+
+### update(rel_filepaths=[], revision=None)
+
+Update the working copy.
 
 ## RemoteClient
+
 
 *RemoteClient* allows access to a remote repository.
 
 
-## SvnException
-
-*SvnException* is raised whenever there is an issue with the svn repository. We
-are no longer supporting catching *ValueError*.
-
-
-## checkout(path)
+### checkout(path)
 
 Checkout a remote repository:
 
@@ -76,10 +103,99 @@ r = svn.remote.RemoteClient('https://repo.local/svn')
 r.checkout('/tmp/working')
 ```
 
+### remove(rel_path, message, do_force=False):
+
+Delete/remove an item from the repository
+
+
+### SvnException
+
+*SvnException* is raised whenever there is an issue with the svn repository. We
+are no longer supporting catching *ValueError*.
+
 
 ## Common Functionality
 
 These methods are available on both clients.
+
+
+### cat(rel_filepath)
+
+Get file-data as string.
+
+```
+import svn.local
+
+l = svn.local.LocalClient('/tmp/test_repo')
+content = l.cat('test_file')
+```
+
+### diff(start_revision,  end_revision)
+
+Diffs between start and end revisions
+
+#### Notice of Diff Reimplementation in 1.0.0
+
+There was a previous contribution to the diff implementation that has been
+reported and confirmed to often throw an exception due to shoddy handling of
+the file-paths in the output. It also made secondary shell calls and mixed both
+text and XML output in the response. As a result of this, the decision has been
+made to just reimplement it and reshape the output in a backwards-incompatible
+way at the same time. If you need to stick to the older implementation, tie your
+dependencies to the 0.3.46 release.
+
+
+### diff_summary(start_revision, end_revision)
+
+A lower-level diff summary that doesn't actually provide the content
+differences.
+
+```
+import svn.remote
+
+l = svn.remote.RemoteClient('http://svn.apache.org/repos/asf')
+print l.diff_summary(1760022, 1760023)
+
+# [{'item': 'modified',
+#  'kind': 'file',
+#  'path': 'http://svn.apache.org/repos/asf/sling/trunk/pom.xml'},
+# {'item': 'added',
+#  'kind': 'file',
+#  'path': 'http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml'}]
+```
+
+
+### log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='', stop_on_copy=False, revision_from=None, revision_to=None, changelist=False)
+
+Perform a log-listing that can be bounded by time or revision number and/or
+take a maximum-count.
+
+```
+import svn.local
+
+l = svn.local.LocalClient('/tmp/test_repo.co')
+
+for e in l.log_default():
+    print(e)
+
+#LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
+#LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
+```
+
+
+
+### export(to_path, revision=None, force=False)
+
+Checkout the tree without embedding an meta-information.
+
+```
+import svn.remote
+
+r = svn.remote.RemoteClient('file:///tmp/test_repo')
+r.export('/tmp/test_export')
+```
+
+We can also use `force` option to force the svn export.
 
 
 ### info(rel_path=None)
@@ -124,50 +240,6 @@ pprint.pprint(info)
 NOTE: The keys named with dashes, slashes, and hashes are considered
       obsolete, and only available for backwards compatibility. We
       have since moved to using only underscores to separate words.
-
-
-### cat(rel_filepath)
-
-Get file-data as string.
-
-```
-import svn.local
-
-l = svn.local.LocalClient('/tmp/test_repo')
-content = l.cat('test_file')
-```
-
-
-### log_default(timestamp_from_dt=None, timestamp_to_dt=None, limit=None, rel_filepath='', stop_on_copy=False, revision_from=None, revision_to=None, changelist=False)
-
-Perform a log-listing that can be bounded by time or revision number and/or
-take a maximum-count.
-
-```
-import svn.local
-
-l = svn.local.LocalClient('/tmp/test_repo.co')
-
-for e in l.log_default():
-    print(e)
-
-#LogEntry(date=datetime.datetime(2015, 4, 24, 3, 2, 39, 895975, tzinfo=tzutc()), msg='Added second file.', revision=2, author='dustin')
-#LogEntry(date=datetime.datetime(2015, 4, 24, 2, 54, 2, 136170, tzinfo=tzutc()), msg='Initial commit.', revision=1, author='dustin')
-```
-
-
-### export(to_path, revision=None, force=False)
-
-Checkout the tree without embedding an meta-information.
-
-```
-import svn.remote
-
-r = svn.remote.RemoteClient('file:///tmp/test_repo')
-r.export('/tmp/test_export')
-```
-
-We can also use `force` option to force the svn export.
 
 
 ### list(extended=False, rel_path=None)
@@ -269,37 +341,39 @@ for rel_path, e in l.list_recursive():
 ```
 
 
-### diff_summary(start_revision,  end_revision)
+### properties(rel_path=None, revision=None):
 
-A lower-level diff summary that doesn't actually provide the content
-differences.
+Return a dictionary with all svn-properties associated with a relative path.
+
+
+### propdel(property_name, rel_path=None, revision=None)
+
+Delete a property with property_anme for the url_or_path.
 
 ```
-import svn.remote
+lc.propdel('svn:mime-type', rel_path='foo.jpg')
+```
 
-l = svn.remote.RemoteClient('http://svn.apache.org/repos/asf')
-print l.diff_summary(1760022, 1760023)
+  
+### propget(property_name, rel_path=None, revision=None):
 
-# [{'item': 'modified',
-#  'kind': 'file',
-#  'path': 'http://svn.apache.org/repos/asf/sling/trunk/pom.xml'},
-# {'item': 'added',
-#  'kind': 'file',
-#  'path': 'http://svn.apache.org/repos/asf/sling/trunk/bundles/extensions/models/pom.xml'}]
+Return a dictionary with the url_or_path as key and the text for the property_name 
+as value
+        
+```
+propdict = lc.propget('svn:mime-type', rel_path='foo.jpg')
 ```
 
 
-### diff(start_revision,  end_revision)
+### propset(property_name, property_value, rel_path=None, revision=None)
 
-Diffs between start and end revisions
+Set the property_name to the property_value for the url_or_path as key 
+
+```
+c.propset('svn:mime-type','image/jpeg', rel_path='foo.jpg')
+
+```  
 
 
-# Notice of Diff Reimplementation in 1.0.0
 
-There was a previous contribution to the diff implementation that has been
-reported and confirmed to often throw an exception due to shoddy handling of
-the file-paths in the output. It also made secondary shell calls and mixed both
-text and XML output in the response. As a result of this, the decision has been
-made to just reimplement it and reshape the output in a backwards-incompatible
-way at the same time. If you need to stick to the older implementation, tie your
-dependencies to the 0.3.46 release.
+

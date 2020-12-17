@@ -12,7 +12,7 @@ import svn.admin
 
 @contextlib.contextmanager
 def temp_path():
-    original_wd = os.getcwd()
+    original_wd = os.path.normpath(os.getcwd())
 
     temp_path = None
     try:
@@ -37,7 +37,7 @@ def temp_repo():
         a = svn.admin.Admin()
         a.create('.')
 
-        rc = svn.remote.RemoteClient('file://{}'.format(repo_path))
+        rc = svn.remote.RemoteClient('file:///{}'.format(repo_path))
 
         yield repo_path, rc
 
@@ -47,10 +47,10 @@ def temp_checkout():
     current path.
     """
 
-    repo_path = os.getcwd()
+    repo_path = os.path.normpath(os.getcwd())
 
     with temp_path() as working_path:
-        rc = svn.remote.RemoteClient('file://{}'.format(repo_path))
+        rc = svn.remote.RemoteClient('file:///{}'.format(repo_path))
         rc.checkout('.')
 
         lc = svn.local.LocalClient(working_path)
@@ -80,7 +80,7 @@ def populate_bigger_file_changes1():
         "test_local_populate1() must be called with the working-directory " \
         "as the CWD."
 
-    working_path = os.getcwd()
+    working_path = os.path.normpath(os.getcwd())
     lc = svn.local.LocalClient(working_path)
 
     # Create a file that will not be committed.
@@ -150,7 +150,7 @@ def populate_bigger_file_change1():
         "test_local_populate1() must be called with the working-directory " \
         "as the CWD."
 
-    working_path = os.getcwd()
+    working_path = os.path.normpath(os.getcwd())
     lc = svn.local.LocalClient(working_path)
 
     # Create a file that will be committed and then changed a lot.
@@ -249,3 +249,36 @@ laborum."
     lc.update()
 
     return rel_filepath
+
+def populate_prop_files():
+    """Establish files for testing property changes"""
+
+    assert \
+        os.path.exists('.svn') is True, \
+        "populate_properties() must be called with the working-directory " \
+        "as the CWD."
+
+    working_path = os.path.normpath(os.getcwd())
+    lc = svn.local.LocalClient(working_path)
+
+    rel_filepath = 'foo.jpg'
+    with open(rel_filepath, 'w') as f:
+        pass
+    lc.add(rel_filepath)
+    
+    rel_filepath = 'foo.bar'
+    with open(rel_filepath, 'w') as f:
+        pass
+    lc.add(rel_filepath)
+
+    rel_filepath = 'foo.bak'
+    with open(rel_filepath, 'w') as f:
+        pass
+    
+
+    # Commit the new files.
+    lc.commit("Initial commit.")
+    
+    # Do an update to pick-up the changes from the commit.
+    lc.update()
+

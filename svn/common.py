@@ -18,6 +18,29 @@ _HUNK_HEADER_LEFT_PREFIX = '--- '
 _HUNK_HEADER_RIGHT_PREFIX = '+++ '
 _HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
+def normpath2(url_or_path):
+    """ Normalize url or path on Windows 
+        convert to lower case and replace backslash by slash
+        This avoids path strings to change during processing makeing them difficult to compare:
+        - backslash appears as 2 backslashes or as %5C
+        - drive letter upper or lower case
+    """
+    import sys
+    if not sys.platform.startswith('win'):
+        return url_or_path
+    else:
+        up = url_or_path.replace('\\','/')
+        up = up.replace('%5C','/')
+        if len(up) < 3:
+            return up
+        elif up[1]==':':
+            return up[0:1].upper()+up[1:]
+        elif len(up) < 10:
+            return up
+        elif up.startswith('file:///') and up[9]==':':
+            return up[:8]+up[8:9].upper()+up[9:]
+        else:
+            return up
 
 class CommonClient(svn.common_base.CommonBase):
     def __init__(self, url_or_path, type_, username=None, password=None,
@@ -133,44 +156,133 @@ class CommonClient(svn.common_base.CommonBase):
 
         return info
 
-    def properties(self, rel_path=None):
+    def properties(self, rel_path=None, revision=None):
         """ Return a dictionary with all svn-properties associated with a
             relative path.
         :param rel_path: relative path in the svn repo to query the
                          properties from
+        :param revision: revision number (default working copy)
         :returns: a dictionary with the property name as key and the content
                   as value
         """
+        cmd = []
+        if revision is not None:
+            cmd += ['-r', str(revision)]
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
+        cmd += ['--xml', full_url_or_path]
 
         result = self.run_command(
             'proplist',
-            ['--xml', full_url_or_path],
+            cmd,
             do_combine=True)
 
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
         target_elem = root.find('target')
-        property_names = [p.attrib["name"]
-                          for p in target_elem.findall('property')]
+        
+        if target_elem is not None:
+            property_names = [p.attrib["name"]
+                                for p in target_elem.findall('property')]
+        else:  # no properties found
+            property_names = []
 
         # now query the content of each propery
         property_dict = {}
 
         for property_name in property_names:
+            cmd = []
+            if revision is not None:
+                cmd += ['-r', str(revision)]
+            cmd += ['--xml', property_name, full_url_or_path, ]
+        
             result = self.run_command(
                 'propget',
-                ['--xml', property_name, full_url_or_path, ],
+                cmd,
                 do_combine=True)
+                
             root = xml.etree.ElementTree.fromstring(result)
             target_elem = root.find('target')
             property_elem = target_elem.find('property')
             property_dict[property_name] = property_elem.text
 
         return property_dict
+
+    def propdel(self, property_name, rel_path=None, revision=None):
+        """ Delete a property with property_anme for the 
+            url_or_path 
+        
+        :param rel_path: relative path in the svn repo to query the
+                         properties from
+        :param revision: revision number (default working copy)
+
+        """
+
+        cmd = [property_name,]
+
+        full_url_or_path = self.__url_or_path
+        
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+            
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+
+        cmd.append(full_url_or_path)
+        
+        self.run_command('propdel', cmd)
+        
+    def propget(self, property_name, rel_path=None, revision=None):
+        """ Return a dictionary with the url_or_path as key and the 
+            text for the property_name as value
+        
+        :param rel_path: relative path in the svn repo to query the
+                         properties from
+        :param revision: revision number (default working copy)
+        :returns: a dictionary with the url_or_path as key and the content 
+                  of the property as value
+        """
+        cmd = []
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        cmd += ['--xml', property_name, full_url_or_path, ]
+
+        result = self.run_command(
+            'propget',
+            cmd,
+            do_combine=True)
+        root = xml.etree.ElementTree.fromstring(result)
+        target_elem = root.find('target')
+        property_elem = target_elem.find('property')
+        
+        return { normpath2(full_url_or_path): property_elem.text.strip('\n') }
+
+    def propset(self, property_name, property_value, rel_path=None, revision=None):
+        """ Set the property_name to the property_value
+            for the url_or_path as key  
+        :param property_name: name of the property
+        :param property_value: value of the property to be set
+        :param rel_path: relative path in the svn repo to query the
+                         properties from
+        :param revision: revision number (default working copy)
+        """
+        cmd = [property_name, property_value]
+
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+        cmd.append(full_url_or_path)
+        
+        self.run_command('propset', cmd)
 
     def cat(self, rel_filepath, revision=None):
         cmd = []
@@ -303,7 +415,7 @@ class CommonClient(svn.common_base.CommonBase):
                 'ls',
                 ['--xml', full_url_or_path],
                 do_combine=True)
-
+            
             root = xml.etree.ElementTree.fromstring(raw)
 
             list_ = root.findall('list/entry')
@@ -312,7 +424,6 @@ class CommonClient(svn.common_base.CommonBase):
 
                 kind = entry_attr['kind']
                 name = entry.find('name').text
-
                 size = entry.find('size')
 
                 # This will be None for directories.
@@ -404,14 +515,14 @@ class CommonClient(svn.common_base.CommonBase):
         diff = []
         for element in root.findall('paths/path'):
             diff.append({
-                'path': element.text,
+                'path': normpath2(element.text),
                 'item': element.attrib['item'],
                 'kind': element.attrib['kind'],
             })
 
         return diff
 
-    def diff(self, old, new, rel_path=None):
+    def diff(self, old, new, rel_path=None, raw=False):
         """Provides output of a diff between two revisions (file, change type,
         file type)
         """
@@ -431,6 +542,9 @@ class CommonClient(svn.common_base.CommonBase):
             do_combine=True)
 
         diff_result = diff_result.strip()
+        
+        if raw:
+            return diff_result
 
         # Split the hunks.
 
@@ -484,7 +598,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         # Index: /tmp/testsvnwc/bb
         # ===================================================================
-        filepath = lines[0][len(_FILE_HUNK_PREFIX):]
+        filepath = normpath2(lines[0][len(_FILE_HUNK_PREFIX):])
 
         # File was added. We have the file-hunk header but no actual hunks.
         if len(lines) == 3:
@@ -559,8 +673,8 @@ class CommonClient(svn.common_base.CommonBase):
             })
 
         hunks_info = {
-            'left_phrase': file_hunk_left_phrase,
-            'right_phrase': file_hunk_right_phrase,
+            'left_phrase': [normpath2(file_hunk_left_phrase[0]), file_hunk_left_phrase[1]],
+            'right_phrase':[normpath2(file_hunk_right_phrase[0]), file_hunk_right_phrase[1]],
             'hunks': hunks,
         }
 
