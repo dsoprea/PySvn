@@ -158,7 +158,7 @@ class TestCommonClient(unittest.TestCase):
                 info['commit_revision'],
                 1)
 
-            info = cc.info(include_ext==True)
+            info = cc.info(include_ext=True)
             self.assertIsNotNone(info)
             # TODO: --include-externals not really tested
 
