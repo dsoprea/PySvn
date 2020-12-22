@@ -24,10 +24,10 @@ class TestCommonClient(unittest.TestCase):
                 self.assertEqual(3, lc.info()['commit_revision'])
 
                 lc.update(set_depth="files")
-                self.assertEqual("files", lc.info()['wc-info_depth'])
+                self.assertEqual("files", lc.info()['wcinfo_depth'])
 
                 lc.update(depth="empty")  # depth is not changed
-                self.assertEqual("files", lc.info()['wc-info_depth'])
+                self.assertEqual("files", lc.info()['wcinfo_depth'])
 
                 lc.update(revision=1, ignore_ext=True)
                 # TODO: ignore_ext not really tested
@@ -158,9 +158,9 @@ class TestCommonClient(unittest.TestCase):
                 info['commit_revision'],
                 1)
 
-            info = cc.info(ignore_ext=True)
+            info = cc.info(include_ext==True)
             self.assertIsNotNone(info)
-            # TODO: ignore_ext not really tested
+            # TODO: --include-externals not really tested
 
     def test_info_revision(self):
         with svn.test_support.temp_common() as (_, working_path, cc):

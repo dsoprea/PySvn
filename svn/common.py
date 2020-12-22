@@ -75,7 +75,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         return None
 
-    def info(self, rel_path=None, revision=None, ignore_ext=False):
+    def info(self, rel_path=None, revision=None, include_ext=False):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
@@ -84,8 +84,8 @@ class CommonClient(svn.common_base.CommonBase):
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
         cmd += ['--xml', full_url_or_path]
-        if ignore_ext:
-            cmd += ["--ignore-externals"]
+        if include_ext:
+            cmd += ["--include-externals"]
 
         result = self.run_command(
             'info',
