@@ -48,10 +48,27 @@ class LocalClient(svn.common.CommonClient):
             args,
             wd=self.path)
 
-    def update(self, rel_filepaths=[], revision=None):
+    def update(
+        self,
+        rel_filepaths=[],
+        revision=None,
+        force=False,
+        depth=None,
+        set_depth=None,
+        ignore_ext=False,
+    ):
         cmd = []
         if revision is not None:
-            cmd += ['-r', str(revision)]
+            cmd += ["-r", str(revision)]
+        if force:
+            cmd += ["--force"]
+        if depth:
+            cmd += svn.common.get_depth_options(depth, set_depth=False)
+        if set_depth:
+            cmd += svn.common.get_depth_options(set_depth, set_depth=True)
+        if ignore_ext:
+            cmd += ["--ignore-externals"]
+
         cmd += rel_filepaths
         self.run_command(
             'update',

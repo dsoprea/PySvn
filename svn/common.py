@@ -19,6 +19,20 @@ _HUNK_HEADER_RIGHT_PREFIX = '+++ '
 _HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
 
+def get_depth_options(depth, set_depth=False):
+    """Get options for depth and check (set_depth=True for --set-depth)"""
+    depth_values = {"empty", "files", "immediates", "infinity"}
+    if set_depth:
+        depth_values = depth_values.union({"exclude"})
+
+    if depth not in depth_values:
+        raise svn.exception.SvnException(
+            "Invalid depth '{d}' (values allowed: {v})!".format(d=depth, v=depth_values)
+        )
+
+    return ["--set-depth" if set_depth else "--depth", depth]
+
+
 class CommonClient(svn.common_base.CommonBase):
     def __init__(self, url_or_path, type_, username=None, password=None,
                  svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
@@ -61,7 +75,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         return None
 
-    def info(self, rel_path=None, revision=None):
+    def info(self, rel_path=None, revision=None, include_ext=False):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
@@ -70,6 +84,8 @@ class CommonClient(svn.common_base.CommonBase):
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
         cmd += ['--xml', full_url_or_path]
+        if include_ext:
+            cmd += ["--include-externals"]
 
         result = self.run_command(
             'info',
