@@ -1,3 +1,4 @@
+import glob
 import os
 import shutil
 import unittest
@@ -27,6 +28,10 @@ class TestRemoteClient(unittest.TestCase):
             shutil.rmtree('trial')
 
     def test_error_client_formation(self):
+        """
+        Testing checkout of incorrect URL
+        :return:
+        """
         try:
             svn.remote.RemoteClient(self.test_fake_url).checkout('.')
         except svn.exception.SvnException:
@@ -42,7 +47,47 @@ class TestRemoteClient(unittest.TestCase):
         svn.remote.RemoteClient(self.test_svn_url).checkout('trial')
         self.assertTrue(os.path.exists('trial'))
 
+    def test_error_checkout_depth(self):
+        """
+        Testing checkout with incorrect argument for option depth
+        :return:
+        """
+        repo = "trial_checkout_opt_err"
+        try:
+            svn.remote.RemoteClient(self.test_svn_url).checkout(repo, depth="toto")
+        except svn.exception.SvnException:
+            self.assertFalse(os.path.exists(repo))
+        else:
+            if os.path.exists(repo):
+                shutil.rmtree(repo)
+            raise Exception("Expected exception for bad URL.")
+
+    def test_checkout_options(self):
+        """
+        Testing options of checkout
+        :return:
+        """
+        repo = "trial_checkout_opt"
+        rc = svn.remote.RemoteClient(self.test_svn_url)
+
+        rc.checkout(repo, force=True)
+        self.assertTrue(os.path.exists(repo))
+        shutil.rmtree(repo)
+
+        rc.checkout(repo, depth="empty")
+        self.assertTrue(os.path.exists(repo))
+        self.assertListEqual(glob.glob(repo + "/*.*"), [])
+        shutil.rmtree(repo)
+
+        rc.checkout(repo, ignore_ext=True)
+        self.assertTrue(os.path.exists(repo))
+        shutil.rmtree(repo)
+
     def test_remove(self):
+        """
+        Testing remove
+        :return:
+        """
         with svn.test_support.temp_repo() as (_, rc):
             with svn.test_support.temp_checkout():
                 svn.test_support.populate_bigger_file_changes1()

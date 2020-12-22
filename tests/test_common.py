@@ -23,7 +23,14 @@ class TestCommonClient(unittest.TestCase):
                 lc.update()
                 self.assertEqual(3, lc.info()['commit_revision'])
 
-                lc.update(revision=1)
+                lc.update(set_depth="files")
+                self.assertEqual("files", lc.info()['wc-info_depth'])
+
+                lc.update(depth="empty")  # depth is not changed
+                self.assertEqual("files", lc.info()['wc-info_depth'])
+
+                lc.update(revision=1, ignore_ext=True)
+                # TODO: ignore_ext not really tested
                 self.assertEqual(1, lc.info()['commit_revision'])
 
     def test_diff_summary(self):
@@ -145,6 +152,15 @@ class TestCommonClient(unittest.TestCase):
             self.assertEqual(
                 info['entry#kind'],
                 'dir')
+
+            info = cc.info(revision=1)
+            self.assertEqual(
+                info['commit_revision'],
+                1)
+
+            info = cc.info(ignore_ext=True)
+            self.assertIsNotNone(info)
+            # TODO: ignore_ext not really tested
 
     def test_info_revision(self):
         with svn.test_support.temp_common() as (_, working_path, cc):
