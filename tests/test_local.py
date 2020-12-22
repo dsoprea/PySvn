@@ -1,4 +1,5 @@
 import os
+from shutil import rmtree
 import unittest
 
 import svn.constants
@@ -87,3 +88,43 @@ class TestLocalClient(unittest.TestCase):
         with svn.test_support.temp_repo():
             with svn.test_support.temp_checkout() as (_, lc):
                 lc.cleanup()
+
+    def test_commit(self):
+        with svn.test_support.temp_repo():
+            with svn.test_support.temp_checkout() as (_, lc):
+                svn.test_support.populate_bigger_file_changes1()
+
+                rel_dirpath = "dir_to_be_added"
+                if os.path.isdir(rel_dirpath):
+                    rmtree(rel_dirpath)
+                os.mkdir(rel_dirpath)
+                lc.add(rel_dirpath)
+
+                rel_filepath_added = os.path.join(rel_dirpath, "added")
+                with open(rel_filepath_added, 'w') as f:
+                    pass
+                lc.add(rel_filepath_added)
+
+                rel_filepath_committed = "committed"
+                with open(rel_filepath_committed, 'w') as f:
+                    pass
+                lc.add(rel_filepath_committed)
+
+                lc.commit("empty commit", ["."], depth="empty")
+                info = lc.info(rel_filepath_committed)
+                info_in_dir = lc.info(rel_filepath_added)
+                self.assertEqual(info["wcinfo_schedule"], "add")
+                self.assertEqual(info_in_dir["wcinfo_schedule"], "add")
+
+                lc.commit("commit files", depth="files")
+                info = lc.info(rel_filepath_committed)
+                info_in_dir = lc.info(rel_filepath_added)
+                self.assertEqual(info["wcinfo_schedule"], "normal")
+                self.assertEqual(info_in_dir["wcinfo_schedule"], "add")
+
+                lc.commit("commit all", depth="infinity")
+                info_in_dir = lc.info(rel_filepath_added)
+                self.assertEqual(info_in_dir["wcinfo_schedule"], "normal")
+
+                lc.commit("commit external", include_ext=True)
+                # TODO: include_ext/--include-externals not really tested
