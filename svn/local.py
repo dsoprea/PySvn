@@ -40,8 +40,14 @@ class LocalClient(svn.common.CommonClient):
             args,
             wd=self.path)
 
-    def commit(self, message, rel_filepaths=[]):
-        args = ['-m', message] + rel_filepaths
+    def commit(self, message, rel_filepaths=None, depth=None, include_ext=False):
+        args = ['-m', message]
+        if depth:
+            args += svn.common.get_depth_options(depth, set_depth=False)
+        if include_ext:
+            args += ["--include-externals"]
+        if rel_filepaths:
+            args += rel_filepaths
 
         output = self.run_command(
             'commit',

@@ -131,7 +131,11 @@ class TestCommonClient(unittest.TestCase):
                 'new_file',
             ]
 
-            self.assertEqual(entries, expected)
+            self.assertListEqual(entries, expected)
+
+            empty_entries = cc.list(depth="empty", include_ext=True)
+            self.assertListEqual(empty_entries, [])
+            # TODO: include_ext/--include-externals not really tested
 
     def test_info(self):
         with svn.test_support.temp_common() as (repo_path, _, cc):
@@ -160,7 +164,7 @@ class TestCommonClient(unittest.TestCase):
 
             info = cc.info(include_ext=True)
             self.assertIsNotNone(info)
-            # TODO: --include-externals not really tested
+            # TODO: include_ext/--include-externals not really tested
 
     def test_info_revision(self):
         with svn.test_support.temp_common() as (_, working_path, cc):

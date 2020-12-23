@@ -301,15 +301,19 @@ class CommonClient(svn.common_base.CommonBase):
 
         self.run_command('export', cmd)
 
-    def list(self, extended=False, rel_path=None):
+    def list(self, extended=False, rel_path=None, depth=None, include_ext=False):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
+        cmd = [full_url_or_path]
+        if depth:
+            cmd += get_depth_options(depth, set_depth=False)
+        if include_ext:
+            cmd += ["--include-externals"]
+
         if extended is False:
-            for line in self.run_command(
-                    'ls',
-                    [full_url_or_path]):
+            for line in self.run_command('ls', cmd):
                 line = line.strip()
                 if line:
                     yield line
@@ -317,7 +321,7 @@ class CommonClient(svn.common_base.CommonBase):
         else:
             raw = self.run_command(
                 'ls',
-                ['--xml', full_url_or_path],
+                ['--xml'] + cmd,
                 do_combine=True)
 
             root = xml.etree.ElementTree.fromstring(raw)
