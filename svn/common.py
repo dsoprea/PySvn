@@ -95,7 +95,8 @@ class CommonClient(svn.common_base.CommonBase):
         root = xml.etree.ElementTree.fromstring(result)
 
         entry_attr = root.find('entry').attrib
-        commit_attr = root.find('entry/commit').attrib
+        commit_tag = root.find('entry/commit')
+        commit_attr = commit_tag.attrib if commit_tag else None
 
         relative_url = root.find('entry/relative-url')
         author = root.find('entry/commit/author')
@@ -113,20 +114,22 @@ class CommonClient(svn.common_base.CommonBase):
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
-            'entry#revision': int(entry_attr['revision']),
 
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
 
             'wc-info/wcroot-abspath': self.__element_text(wcroot_abspath),
             'wc-info/schedule': self.__element_text(wcinfo_schedule),
-            'wc-info/depth': self.__element_text(wcinfo_depth),
-            'commit/author': self.__element_text(author),
-
-            'commit/date': dateutil.parser.parse(
-                root.find('entry/commit/date').text),
-            'commit#revision': int(commit_attr['revision']),
+            'wc-info/depth': self.__element_text(wcinfo_depth)
         }
+        if commit_attr:
+            info.update({
+                'entry#revision': int(entry_attr['revision']),
+                'commit/author': self.__element_text(author),
+                'commit/date': dateutil.parser.parse(
+                    root.find('entry/commit/date').text),
+                'commit#revision': int(commit_attr['revision']),
+            })
 
         # Set some more intuitive keys, because no one likes dealing with
         # symbols. However, we retain the old ones to maintain backwards-
@@ -137,15 +140,17 @@ class CommonClient(svn.common_base.CommonBase):
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
-        info['entry_revision'] = info['entry#revision']
         info['repository_root'] = info['repository/root']
         info['repository_uuid'] = info['repository/uuid']
         info['wcinfo_wcroot_abspath'] = info['wc-info/wcroot-abspath']
         info['wcinfo_schedule'] = info['wc-info/schedule']
         info['wcinfo_depth'] = info['wc-info/depth']
-        info['commit_author'] = info['commit/author']
-        info['commit_date'] = info['commit/date']
-        info['commit_revision'] = info['commit#revision']
+
+        if commit_attr:
+            info['entry_revision'] = info['entry#revision']
+            info['commit_author'] = info['commit/author']
+            info['commit_date'] = info['commit/date']
+            info['commit_revision'] = info['commit#revision']
 
         return info
 

@@ -143,24 +143,13 @@ class TestCommonClient(unittest.TestCase):
 
             info = cc.info()
 
-            self.assertEqual(
-                info['entry_path'],
-                '.')
-
+            self.assertEqual(info['entry_path'], '.')
             uri = 'file://{}'.format(repo_path)
-
-            self.assertEqual(
-                info['repository_root'],
-                uri)
-
-            self.assertEqual(
-                info['entry#kind'],
-                'dir')
+            self.assertEqual(info['repository_root'], uri)
+            self.assertEqual(info['entry_kind'], 'dir')
 
             info = cc.info(revision=1)
-            self.assertEqual(
-                info['commit_revision'],
-                1)
+            self.assertEqual(info['commit_revision'], 1)
 
             info = cc.info(include_ext=True)
             self.assertIsNotNone(info)
@@ -181,8 +170,22 @@ class TestCommonClient(unittest.TestCase):
             info1 = cc.info(revision=1)
             self.assertEquals(info1['commit_revision'], 1)
 
-            info2 = cc.info(revision=2)
+            info2 = cc.info(".", revision=2)
             self.assertEquals(info2['commit_revision'], 2)
+
+            rel_filepath_not_committed = "to_be_added"
+            with open(rel_filepath_not_committed, 'w') as _:
+                pass
+            lc.add(rel_filepath_not_committed)
+
+            # Get information on file not yet committed to SVN
+            info3 = cc.info(rel_filepath_not_committed)
+            self.assertEquals(info3['wcinfo_schedule'], "add")
+            self.assertEqual(info3['entry_kind'], 'file')
+            self.assertNotIn('entry_revision', info3)
+            for attr in {"date", "revision", "author"}:
+                self.assertNotIn('commit_' + attr, info3)
+
 
     def test_log(self):
         with svn.test_support.temp_common() as (_, _, cc):
