@@ -121,9 +121,6 @@ class TestCommonClient(unittest.TestCase):
         with svn.test_support.temp_common() as (_, _, cc):
             svn.test_support.populate_bigger_file_changes1()
 
-            entries = cc.list()
-            entries = sorted(entries)
-
             expected = [
                 'committed_changed',
                 'committed_deleted',
@@ -131,10 +128,14 @@ class TestCommonClient(unittest.TestCase):
                 'new_file',
             ]
 
-            self.assertListEqual(entries, expected)
+            entries = cc.list()
+            self.assertListEqual(sorted(entries), expected)
 
-            empty_entries = cc.list(depth="empty", include_ext=True)
-            self.assertListEqual(empty_entries, [])
+            empty_entries = cc.list(depth="empty")
+            self.assertListEqual(list(empty_entries), [])
+
+            entries = cc.list(include_ext=True)
+            self.assertListEqual(sorted(entries), expected)
             # TODO: include_ext/--include-externals not really tested
 
     def test_info(self):
