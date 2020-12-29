@@ -19,10 +19,10 @@ _HUNK_HEADER_RIGHT_PREFIX = '+++ '
 _HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
 
-def get_depth_options(depth, set_depth=False):
-    """Get options for depth and check (set_depth=True for --set-depth)"""
+def get_depth_options(depth, is_set_depth=False):
+    """Get options for depth and check (is_set_depth=True for --set-depth)"""
     depth_values = {"empty", "files", "immediates", "infinity"}
-    if set_depth:
+    if is_set_depth:
         depth_values = depth_values.union({"exclude"})
 
     if depth not in depth_values:
@@ -30,7 +30,7 @@ def get_depth_options(depth, set_depth=False):
             "Invalid depth '{d}' (values allowed: {v})!".format(d=depth, v=depth_values)
         )
 
-    return ["--set-depth" if set_depth else "--depth", depth]
+    return ["--set-depth" if is_set_depth else "--depth", depth]
 
 
 class CommonClient(svn.common_base.CommonBase):
@@ -313,7 +313,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         cmd = [full_url_or_path]
         if depth:
-            cmd += get_depth_options(depth, set_depth=False)
+            cmd += get_depth_options(depth)
         if include_ext:
             cmd += ["--include-externals"]
 

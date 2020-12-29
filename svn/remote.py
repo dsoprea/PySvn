@@ -17,7 +17,7 @@ class RemoteClient(svn.common.CommonClient):
         if force:
             cmd += ["--force"]
         if depth:
-            cmd += svn.common.get_depth_options(depth, set_depth=False)
+            cmd += svn.common.get_depth_options(depth)
         if ignore_ext:
             cmd += ["--ignore-externals"]
 

@@ -43,7 +43,7 @@ class LocalClient(svn.common.CommonClient):
     def commit(self, message, rel_filepaths=None, depth=None, include_ext=False):
         args = ['-m', message]
         if depth:
-            args += svn.common.get_depth_options(depth, set_depth=False)
+            args += svn.common.get_depth_options(depth)
         if include_ext:
             args += ["--include-externals"]
         if rel_filepaths:
@@ -69,9 +69,9 @@ class LocalClient(svn.common.CommonClient):
         if force:
             cmd += ["--force"]
         if depth:
-            cmd += svn.common.get_depth_options(depth, set_depth=False)
+            cmd += svn.common.get_depth_options(depth)
         if set_depth:
-            cmd += svn.common.get_depth_options(set_depth, set_depth=True)
+            cmd += svn.common.get_depth_options(set_depth, is_set_depth=True)
         if ignore_ext:
             cmd += ["--ignore-externals"]
 
