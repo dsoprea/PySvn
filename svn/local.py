@@ -29,11 +29,13 @@ class LocalClient(svn.common.CommonClient):
     def __repr__(self):
         return '<SVN(LOCAL) %s>' % self.path
 
-    def add(self, rel_path, do_include_parents=False):
+    def add(self, rel_path, do_include_parents=False, depth=None):
         args = [rel_path]
 
-        if do_include_parents is True:
+        if do_include_parents:
             args.append('--parents')
+        if depth:
+            args += svn.common.get_depth_options(depth)
 
         self.run_command(
             'add',
