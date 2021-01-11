@@ -9,6 +9,10 @@ class TestLocalClient(unittest.TestCase):
     def test_status(self):
         with svn.test_support.temp_repo():
             with svn.test_support.temp_checkout() as (_, lc):
+                lc.run_command('propset', ['someProp', 'someVal', '.'])
+                s = next(lc.status())
+                self.assertTrue(s.type_raw_name == 'modified')
+
                 svn.test_support.populate_bigger_file_changes1()
 
                 status = {}
