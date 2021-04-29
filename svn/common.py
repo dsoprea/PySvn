@@ -154,6 +154,9 @@ class CommonClient(svn.common_base.CommonBase):
         # query the proper list of this path
         root = xml.etree.ElementTree.fromstring(result)
         target_elem = root.find('target')
+        if not target_elem:
+            return {}
+
         property_names = [p.attrib["name"]
                           for p in target_elem.findall('property')]
 

@@ -14,6 +14,23 @@ class TestCommonClient(unittest.TestCase):
         self.maxDiff = None
         super(TestCommonClient, self).__init__(*args, **kwargs)
 
+    def test_properties(self):
+        with svn.test_support.temp_repo():
+            with svn.test_support.temp_checkout() as (working_path, lc):
+                svn.test_support.populate_bigger_file_changes1()
+
+                self.assertEqual(0, len(lc.properties('new_file')))
+                self.assertEqual(0, len(lc.properties('committed_unchanged')))
+
+                binary_file = 'binary.dat'
+                with open(os.path.join(working_path, binary_file), 'wb') as f:
+                    f.write(bytearray(range(10)))
+                lc.add(binary_file) # file must be added to have props detected
+                binary_props = lc.properties(binary_file)
+                self.assertEqual(1, len(binary_props))
+                self.assertIsNotNone(binary_props['svn:mime-type'])
+                self.assertEqual('application/octet-stream', binary_props['svn:mime-type'])
+
     def test_update(self):
         with svn.test_support.temp_repo():
             with svn.test_support.temp_checkout() as (_, lc):
