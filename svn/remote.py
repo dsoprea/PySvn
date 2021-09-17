@@ -1,3 +1,5 @@
+import posixpath
+
 import svn.constants
 import svn.common
 
@@ -38,17 +40,7 @@ class RemoteClient(svn.common.CommonClient):
             args)
 
     def _pathjoin(self, *args):
-        clean_args = []
-        for i, arg in enumerate(args):
-            if i != 0 and arg.startswith('/'):
-                arg = arg[1:]
-
-            if i != len(args) - 1 and arg.endswith('/'):
-                arg = arg[:-1]
-
-            clean_args.append(arg)
-
-        return '/'.join(clean_args)
+        return posixpath.join(*args)
 
     def __repr__(self):
         return '<SVN(REMOTE) %s>' % self.url
