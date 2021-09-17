@@ -27,7 +27,7 @@ class RemoteClient(svn.common.CommonClient):
         if do_force is True:
             args.append('--force')
 
-        url = '{}/{}'.format(self.url, rel_path)
+        url = self._pathjoin(self.url, rel_path)
 
         args += [
             url
@@ -36,6 +36,19 @@ class RemoteClient(svn.common.CommonClient):
         self.run_command(
             'rm',
             args)
+
+    def _pathjoin(self, *args):
+        clean_args = []
+        for i, arg in enumerate(args):
+            if i != 0 and arg.startswith('/'):
+                arg = arg[1:]
+
+            if i != len(args) - 1 and arg.endswith('/'):
+                arg = arg[:-1]
+
+            clean_args.append(arg)
+
+        return '/'.join(clean_args)
 
     def __repr__(self):
         return '<SVN(REMOTE) %s>' % self.url

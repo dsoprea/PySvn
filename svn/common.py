@@ -68,7 +68,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            full_url_or_path = self._pathjoin(full_url_or_path, rel_path)
         cmd += ['--xml', full_url_or_path]
 
         result = self.run_command(
@@ -144,7 +144,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            full_url_or_path = self._pathjoin(full_url_or_path, rel_path)
 
         result = self.run_command(
             'proplist',
@@ -176,7 +176,7 @@ class CommonClient(svn.common_base.CommonBase):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
-        cmd += [self.__url_or_path + '/' + rel_filepath]
+        cmd += [self._pathjoin(self.__url_or_path, rel_filepath)]
         return self.run_command('cat', cmd, return_binary=True)
 
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
@@ -189,7 +189,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         full_url_or_path = self.__url_or_path
         if rel_filepath is not None:
-            full_url_or_path += '/' + rel_filepath
+            self._pathjoin(full_url_or_path, rel_filepath)
 
         timestamp_from_phrase = ('{' + timestamp_from_dt.isoformat() + '}') \
             if timestamp_from_dt \
@@ -288,7 +288,7 @@ class CommonClient(svn.common_base.CommonBase):
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            full_url_or_path = self._pathjoin(full_url_or_path, rel_path)
 
         if extended is False:
             for line in self.run_command(
@@ -347,6 +347,9 @@ class CommonClient(svn.common_base.CommonBase):
 
                 yield entry
 
+    def _pathjoin(self, *args):
+        return os.path.join(*args)
+
     def list_recursive(self, rel_path=None, yield_dirs=False,
                        path_filter_cb=None):
         q = [rel_path]
@@ -357,8 +360,8 @@ class CommonClient(svn.common_base.CommonBase):
             for entry in self.list(extended=True, rel_path=current_rel_path):
                 if entry['is_directory'] is True:
                     if current_rel_path is not None:
-                        next_rel_path = \
-                            os.path.join(current_rel_path, entry['name'])
+                        next_rel_path = self._pathjoin(
+                            current_rel_path, entry['name'])
                     else:
                         next_rel_path = entry['name']
 
@@ -385,7 +388,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            full_url_or_path = self._pathjoin(full_url_or_path, rel_path)
 
         arguments = [
             '--old', '{0}@{1}'.format(full_url_or_path, old),
@@ -418,7 +421,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
-            full_url_or_path += '/' + rel_path
+            full_url_or_path = self._pathjoin(full_url_or_path, rel_path)
 
         arguments = [
             '--old', '{0}@{1}'.format(full_url_or_path, old),
