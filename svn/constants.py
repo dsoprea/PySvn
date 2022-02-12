@@ -1,3 +1,5 @@
+import collections
+
 # Kinds
 
 K_DIR = 'dir'
@@ -43,3 +45,13 @@ STATUS_TYPE_LOOKUP = {
     'replaced': ST_REPLACED,
     'unversioned': ST_UNVERSIONED,
 }
+
+fields = ['date', 'msg', 'revision', 'author', 'changelist']
+LogEntry = collections.namedtuple('LogEntry', fields)
+
+# <path> code in https://svn.apache.org/repos/asf/subversion/trunk/subversion/svn/log-cmd.c
+# uses hyphens for the attribute names, but namedtuple field names cannot have hyphens
+fields = ['action', 'path', 'copyfrom_path', 'copyfrom_rev', 'kind', 'text_mods', 'prop_mods']
+ChangelistEntry = collections.namedtuple('ChangelistEntry', fields)
+# NOTE: Python 2's namedtuple doesn't allow for defaults, so need a defaults dict
+ChangelistEntryDefaults = {x: None for x in fields[2:]}
