@@ -1,11 +1,11 @@
-__author__ = 'tusharmakkar08'
-
 import os
 import shutil
 import unittest
 
+import svn.constants
 import svn.exception
 import svn.remote
+import svn.test_support
 
 
 class TestRemoteClient(unittest.TestCase):
@@ -27,12 +27,12 @@ class TestRemoteClient(unittest.TestCase):
             shutil.rmtree('trial')
 
     def test_error_client_formation(self):
-        """
-        Testing Value error while client formation
-        :return:
-        """
-        with self.assertRaises(svn.exception.SvnException):
+        try:
             svn.remote.RemoteClient(self.test_fake_url).checkout('.')
+        except svn.exception.SvnException:
+            pass
+        else:
+            raise Exception("Expected exception for bad URL.")
 
     def test_checkout(self):
         """
@@ -41,3 +41,31 @@ class TestRemoteClient(unittest.TestCase):
         """
         svn.remote.RemoteClient(self.test_svn_url).checkout('trial')
         self.assertTrue(os.path.exists('trial'))
+
+    def test_remove(self):
+        with svn.test_support.temp_repo() as (_, rc):
+            with svn.test_support.temp_checkout():
+                svn.test_support.populate_bigger_file_changes1()
+
+            current_entries = rc.list()
+            current_entries = list(current_entries)
+
+            self.assertIn('new_file', current_entries)
+
+            # Confirm it's there.
+
+            current_entries = rc.list()
+            current_entries = list(current_entries)
+
+            self.assertIn('new_file', current_entries)
+
+            # Remove.
+
+            rc.remove('new_file', "Remove file.")
+
+            # Confirm that it's gone.
+
+            current_entries = rc.list()
+            current_entries = list(current_entries)
+
+            self.assertNotIn('new_file', current_entries)

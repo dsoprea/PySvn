@@ -1,5 +1,3 @@
-__author__ = 'tusharmakkar08'
-
 diff_summary = [{'item': 'modified',
                  'kind': 'file',
                  'path': 'http://svn.apache.org/repos/asf/sling/trunk/pom.xml'},

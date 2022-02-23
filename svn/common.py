@@ -11,18 +11,15 @@ import svn.exception
 
 _LOGGER = logging.getLogger(__name__)
 
-_STATUS_ENTRY = \
-    collections.namedtuple(
-        '_STATUS_ENTRY', [
-            'name',
-            'type_raw_name',
-            'type',
-            'revision',
-        ])
+_FILE_HUNK_PREFIX = 'Index: '
+
+_HUNK_HEADER_LEFT_PREFIX = '--- '
+_HUNK_HEADER_RIGHT_PREFIX = '+++ '
+_HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
 
 class CommonClient(svn.common_base.CommonBase):
-    def __init__(self, url_or_path, type_, username=None, password=None, 
+    def __init__(self, url_or_path, type_, username=None, password=None,
                  svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
         super(CommonClient, self).__init__(*args, **kwargs)
 
@@ -251,7 +248,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         # Merge history can create nested log entries, so use iter instead of findall
         for e in root.iter('logentry'):
-            entry_info = {x.tag: x.text for x in e.getchildren()}
+            entry_info = {x.tag: x.text for x in list(e)}
 
             date = None
             date_text = entry_info.get('date')
@@ -420,49 +417,192 @@ class CommonClient(svn.common_base.CommonBase):
                     yield (current_rel_path_phrase, entry)
 
     def diff_summary(self, old, new, rel_path=None):
-        """
-        Provides a summarized output of a diff between two revisions
+        """Provides a summarized output of a diff between two revisions
         (file, change type, file type)
         """
+
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
+
+        arguments = [
+            '--old', '{0}@{1}'.format(full_url_or_path, old),
+            '--new', '{0}@{1}'.format(full_url_or_path, new),
+            '--summarize',
+            '--xml',
+        ]
+
         result = self.run_command(
             'diff',
-            ['--old', '{0}@{1}'.format(full_url_or_path, old),
-             '--new', '{0}@{1}'.format(full_url_or_path, new),
-             '--summarize', '--xml'],
+            arguments,
             do_combine=True)
+
         root = xml.etree.ElementTree.fromstring(result)
+
         diff = []
         for element in root.findall('paths/path'):
             diff.append({
                 'path': element.text,
                 'item': element.attrib['item'],
-                'kind': element.attrib['kind']})
+                'kind': element.attrib['kind'],
+            })
+
         return diff
 
     def diff(self, old, new, rel_path=None):
+        """Provides output of a diff between two revisions (file, change type,
+        file type)
         """
-        Provides output of a diff between two revisions (file, change type,
-         file type)
-        """
+
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
-        diff_result = self.run_command(
-            'diff',
-            ['--old', '{0}@{1}'.format(full_url_or_path, old),
-             '--new', '{0}@{1}'.format(full_url_or_path, new)],
+
+        arguments = [
+            '--old', '{0}@{1}'.format(full_url_or_path, old),
+            '--new', '{0}@{1}'.format(full_url_or_path, new),
+        ]
+
+        diff_result = \
+            self.run_command(
+            'diff', arguments,
             do_combine=True)
-        file_to_diff = {}
-        for non_empty_diff in filter(None, diff_result.decode('utf8').split('Index: ')):
-            split_diff = non_empty_diff.split('==')
-            file_to_diff[split_diff[0].strip().strip('/')] = split_diff[-1].strip('=').strip()
-        diff_summaries = self.diff_summary(old, new, rel_path)
-        for diff_summary in diff_summaries:
-            diff_summary['diff'] = file_to_diff[diff_summary['path'].split('/')[-1]]
-        return diff_summaries
+
+        diff_result = diff_result.strip()
+
+        # Split the hunks.
+
+        # Index: /tmp/testsvnwc/bb
+        # ===================================================================
+        # --- /tmp/testsvnwc/bb   (nonexistent)
+        # +++ /tmp/testsvnwc/bb   (revision 3)
+        # @@ -0,0 +1 @@
+        # +Sat Feb  1 03:14:10 EST 2020
+        # Index: /tmp/testsvnwc/cc
+        # ===================================================================
+        # --- /tmp/testsvnwc/cc   (nonexistent)
+        # +++ /tmp/testsvnwc/cc   (revision 3)
+        # @@ -0,0 +1 @@
+        # +Sat Feb  1 03:14:27 EST 2020
+
+        hunks = {}
+
+        def _process_hunk(file_hunk_raw):
+            # hunks_info will be `None` for file-adds.
+            filepath, hunks_info = self._split_file_hunk(file_hunk_raw)
+
+            hunks[filepath] = hunks_info
+
+        while True:
+            if not diff_result:
+                break
+
+            assert \
+                diff_result.startswith(_FILE_HUNK_PREFIX), \
+                "Diff output doesn't start with 'Index:':\n{}".format(
+                diff_result)
+
+            try:
+                next_index = diff_result.index(_FILE_HUNK_PREFIX, 1)
+            except ValueError:
+                _process_hunk(diff_result)
+                break
+
+            file_hunk_raw, diff_result = diff_result[:next_index], diff_result[next_index:]
+
+            _process_hunk(file_hunk_raw)
+
+        return hunks
+
+    def _split_file_hunk(self, file_hunk):
+        # Parse the filename out of the header and drop the header from the
+        # hunk.
+
+        lines = file_hunk.split('\n')
+
+        # Index: /tmp/testsvnwc/bb
+        # ===================================================================
+        filepath = lines[0][len(_FILE_HUNK_PREFIX):]
+
+        # File was added. We have the file-hunk header but no actual hunks.
+        if len(lines) == 3:
+            assert \
+                lines[2] == '', \
+                "Empty diff expects third line to be empty:\n{}".format(lines)
+
+            return filepath, None
+
+        assert \
+            lines[2].startswith(_HUNK_HEADER_LEFT_PREFIX), \
+            "Could not find 'left' header prefix: [{}]".format(lines[2])
+
+        assert \
+            lines[3].startswith(_HUNK_HEADER_RIGHT_PREFIX), \
+            "Could not find 'right' header prefix: [{}]".format(lines[3])
+
+        # --- /tmp/testsvnwc/cc   (revision 5)
+        # +++ /tmp/testsvnwc/cc   (revision 6)
+        # @@ -33,6 +33,7 @@
+        #  nova/sdk/certgen   developertools/certgen  master
+        #  nova/apps/search   nova/apps/search    develop
+        #  external/conscrypt nvidia/android/platform/external/conscrypt  ml-t186-n-dev
+        # +testline1
+        #  vendor/nvidia/tegra/adsp/adsp-t21x nvidia/tegra/adsp/adsp-t21x ml/rel-28r10
+        #  device/generic/armv7-a-neon    nvidia/android/device/generic/armv7-a-neon  ml-t186-n-dev
+        #  robot_test_apps/unity_robot_test   ml/unity_robot_test master
+        # @@ -236,6 +237,7 @@
+        #  hardware/nvidia/soc/t18x   nvidia/device/hardware/nvidia/soc/t18x  ml-t186-n-dev
+        #  vendor/nvidia/tegra/multimedia nvidia/tegra/prebuilts-multimedia-headers-standard  ml-t186-n-dev
+        #  external/c-ares    nvidia/android/platform/external/c-ares ml-t186-n-dev
+        # +testline2
+        #  external/chromium-webview  nvidia/android/platform/external/chromium-webview   ml-t186-n-dev
+        #  nova/apps/landscapemanager nova/apps/landscapemanager  master
+        #  external/bzip2 nvidia/android/platform/external/bzip2  ml-t186-n-dev
+
+        file_hunk_left_phrase = lines[2][len(_HUNK_HEADER_LEFT_PREFIX):].split('\t')
+        file_hunk_right_phrase = lines[3][len(_HUNK_HEADER_RIGHT_PREFIX):].split('\t')
+
+        lines = lines[4:]
+
+        hunks = []
+        while True:
+            if not lines:
+                break
+
+            # @@ -33,6 +33,7 @@
+            #  nova/sdk/certgen   developertools/certgen  master
+            #  nova/apps/search   nova/apps/search    develop
+            #  external/conscrypt nvidia/android/platform/external/conscrypt  ml-t186-n-dev
+            # +testline1
+            #  vendor/nvidia/tegra/adsp/adsp-t21x nvidia/tegra/adsp/adsp-t21x ml/rel-28r10
+            #  device/generic/armv7-a-neon    nvidia/android/device/generic/armv7-a-neon  ml-t186-n-dev
+            #  robot_test_apps/unity_robot_test   ml/unity_robot_test master
+
+            hunk_lines_phrase = lines[0]
+            lines = lines[1:]
+
+            hunk_lines = []
+            for line in lines:
+                # We've run into the next hunk.
+                if line.startswith(_HUNK_HEADER_LINE_NUMBERS_PREFIX) is True:
+                    break
+
+                hunk_lines.append(line)
+
+            lines = lines[len(hunk_lines):]
+
+            hunks.append({
+                'lines_phrase': hunk_lines_phrase,
+                'body': '\n'.join(hunk_lines),
+            })
+
+        hunks_info = {
+            'left_phrase': file_hunk_left_phrase,
+            'right_phrase': file_hunk_right_phrase,
+            'hunks': hunks,
+        }
+
+        return filepath, hunks_info
 
     @property
     def url(self):

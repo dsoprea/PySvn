@@ -9,34 +9,52 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CommonBase(object):
-    def external_command(self, cmd, success_code=0, do_combine=False, 
-                         return_binary=False, environment={}, wd=None):
+    def external_command(
+            self, cmd, success_code=0, do_combine=False, return_binary=False,
+            environment={}, wd=None, do_discard_stderr=True):
         _LOGGER.debug("RUN: %s" % (cmd,))
 
         env = os.environ.copy()
-        env['LANG'] = svn.config.CONSOLE_ENCODING
+
+        lang = os.environ.get('LANG', svn.config.CONSOLE_ENCODING)
+        env['LANG'] = lang
+
         env.update(environment)
 
-        p = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            cwd=wd,
-            env=env)
+        decode_text = return_binary is False
 
-        stdout = p.stdout.read()
-        r = p.wait()
-        p.stdout.close()
+        kwargs = {}
 
-        if r != success_code:
+        if do_discard_stderr is True:
+            kwargs['stderr'] = subprocess.PIPE
+        else:
+            kwargs['stderr'] = subprocess.STDOUT
+
+        p = \
+            subprocess.Popen(
+                cmd,
+                cwd=wd,
+                env=env,
+                stdout=subprocess.PIPE,
+                universal_newlines=decode_text,
+                **kwargs)
+
+        stdout, stderr = p.communicate()
+        return_code = p.returncode
+
+        if return_code != 0:
+            # do_discard_stderr is False
+            if stderr is None:
+                stderr = "<combined with STDOUT, above>"
+
             raise svn.exception.SvnException(
-                "Command failed with ({}): {}\n{}".format(
-                p.returncode, cmd, stdout))
+                "Command failed with ({}): {}\nSTDOUT:\n\n{}\nSTDERR:\n\n{}".format(
+                return_code, cmd, stdout, stderr))
 
         if return_binary is True or do_combine is True:
             return stdout
 
-        return stdout.decode().strip('\n').split('\n')
+        return stdout.strip('\n').split('\n')
 
     def rows_to_dict(self, rows, lc=True):
         d = {}

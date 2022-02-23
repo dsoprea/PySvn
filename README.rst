@@ -1,1 +1,0 @@
-svn/resources/README.rst

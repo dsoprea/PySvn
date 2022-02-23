@@ -1,7 +1,19 @@
-import os.path
+import os
+import collections
+
+import xml.etree
 
 import svn.constants
 import svn.common
+
+_STATUS_ENTRY = \
+    collections.namedtuple(
+        '_STATUS_ENTRY', [
+            'name',
+            'type_raw_name',
+            'type',
+            'revision',
+        ])
 
 
 class LocalClient(svn.common.CommonClient):
@@ -17,16 +29,21 @@ class LocalClient(svn.common.CommonClient):
     def __repr__(self):
         return '<SVN(LOCAL) %s>' % self.path
 
-    def add(self, rel_path):
+    def add(self, rel_path, do_include_parents=False):
+        args = [rel_path]
+
+        if do_include_parents is True:
+            args.append('--parents')
+
         self.run_command(
             'add',
-            [rel_path],
+            args,
             wd=self.path)
 
     def commit(self, message, rel_filepaths=[]):
         args = ['-m', message] + rel_filepaths
 
-        self.run_command(
+        output = self.run_command(
             'commit',
             args,
             wd=self.path)
@@ -46,3 +63,58 @@ class LocalClient(svn.common.CommonClient):
             'cleanup',
             [],
             wd=self.path)
+
+    def status(self, rel_path=None, include_changelists=False):
+        path = self.path
+        if rel_path is not None:
+            path += '/' + rel_path
+
+        raw = self.run_command(
+            'status',
+            ['--xml', path],
+            do_combine=True)
+
+        root = xml.etree.ElementTree.fromstring(raw)
+
+        list_ = root.findall('target/entry')
+        if include_changelists is True:
+            list_ += root.findall('changelist/entry')
+        for entry in list_:
+            entry_attr = entry.attrib
+            name = entry_attr['path']
+
+            wcstatus = entry.find('wc-status')
+            wcstatus_attr = wcstatus.attrib
+
+            change_type_raw = wcstatus_attr['item']
+            change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
+
+            # This will be absent if the file is "unversioned". It'll be "-1"
+            # if added but not committed.
+            revision = wcstatus_attr.get('revision')
+            if revision is not None:
+                revision = int(revision)
+
+            yield _STATUS_ENTRY(
+                name=name,
+                type_raw_name=change_type_raw,
+                type=change_type,
+                revision=revision
+            )
+
+    def remove(self, rel_path, do_keep_local=False, do_force=False):
+        args = []
+
+        if do_keep_local is True:
+            args.append('--keep-local')
+
+        if do_force is True:
+            args.append('--force')
+
+        args += [
+            rel_path
+        ]
+
+        self.run_command(
+            'rm',
+            args)
