@@ -116,3 +116,20 @@ class LocalClient(svn.common.CommonClient):
         self.run_command(
             'rm',
             args)
+
+    def revert(self, rel_filepaths=["."], depth="empty"):
+        cmd = []
+        if(depth in (
+                    "empty", # only the target itself
+                     "files", # the target and any immediate file children thereof
+                     "immediates", # the target and any immediate children thereof
+                     "infinity" # the target and all of its descendants — full recursion
+                     )):
+            cmd += ["--depth", depth]
+            
+        cmd += rel_filepaths
+        self.run_command(
+            'revert',
+            cmd,
+            wd=self.path
+        )
