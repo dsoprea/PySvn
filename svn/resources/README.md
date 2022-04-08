@@ -25,6 +25,7 @@ Functions currently implemented:
 - update
 - cleanup
 - remove (i.e. rm, del, delete)
+- revert
 
 In addition, there is also an "admin" class (`svn.admin.Admin`) that provides a
 `create` method with which to create repositories.
