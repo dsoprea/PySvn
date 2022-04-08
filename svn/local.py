@@ -71,7 +71,7 @@ class LocalClient(svn.common.CommonClient):
 
         raw = self.run_command(
             'status',
-            ['--xml', path],
+            ['--no-ignore', '--xml', path],
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(raw)
