@@ -21,7 +21,8 @@ _HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
 class CommonClient(svn.common_base.CommonBase):
     def __init__(self, url_or_path, type_, username=None, password=None,
-                 svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
+                 svn_filepath='svn', trust_cert=None, custom_params=None,
+                 env={}, *args, **kwargs):
         super(CommonClient, self).__init__(*args, **kwargs)
 
         self.__url_or_path = url_or_path
@@ -30,6 +31,7 @@ class CommonClient(svn.common_base.CommonBase):
         self.__svn_filepath = svn_filepath
         self.__trust_cert = trust_cert
         self.__env = env
+        self.__custom_params = custom_params
 
         if type_ not in (svn.constants.LT_URL, svn.constants.LT_PATH):
             raise svn.exception.SvnException("Type is invalid: {}".format(type_))
@@ -41,6 +43,9 @@ class CommonClient(svn.common_base.CommonBase):
 
         if self.__trust_cert:
             cmd += ['--trust-server-cert']
+
+        if self.__custom_params:
+            cmd += [self.__custom_params]
 
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
