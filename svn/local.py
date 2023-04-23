@@ -39,7 +39,13 @@ class LocalClient(svn.common.CommonClient):
             'add',
             args,
             wd=self.path)
-
+        
+    def delete(self, rel_path):
+        self.run_command(
+            'delete',
+            [rel_path],
+            wd=self.path)
+        
     def commit(self, message, rel_filepaths=[]):
         args = ['-m', message] + rel_filepaths
 
