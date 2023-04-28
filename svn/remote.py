@@ -1,3 +1,5 @@
+import posixpath
+
 import svn.constants
 import svn.common
 
@@ -27,7 +29,7 @@ class RemoteClient(svn.common.CommonClient):
         if do_force is True:
             args.append('--force')
 
-        url = '{}/{}'.format(self.url, rel_path)
+        url = self._pathjoin(self.url, rel_path)
 
         args += [
             url
@@ -36,6 +38,9 @@ class RemoteClient(svn.common.CommonClient):
         self.run_command(
             'rm',
             args)
+
+    def _pathjoin(self, *args):
+        return posixpath.join(*args)
 
     def __repr__(self):
         return '<SVN(REMOTE) %s>' % self.url
