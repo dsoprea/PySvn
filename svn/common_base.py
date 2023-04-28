@@ -12,7 +12,16 @@ class CommonBase(object):
     def external_command(
             self, cmd, success_code=0, do_combine=False, return_binary=False,
             environment={}, wd=None, do_discard_stderr=True):
-        _LOGGER.debug("RUN: %s" % (cmd,))
+        
+        # the cmd may contain a user password that should not be logged, therefore we make a clean version of the
+        # comamnd for logging purposes
+        if '--password' in cmd:
+            safe_logging_comand = cmd.copy()
+            safe_logging_comand[cmd.index('--password') + 1] = '**************'
+        else:
+            safe_logging_comand = cmd
+        
+        _LOGGER.debug("RUN: %s" % (safe_logging_comand,))
 
         env = os.environ.copy()
 
@@ -49,7 +58,7 @@ class CommonBase(object):
 
             raise svn.exception.SvnException(
                 "Command failed with ({}): {}\nSTDOUT:\n\n{}\nSTDERR:\n\n{}".format(
-                return_code, cmd, stdout, stderr))
+                return_code, safe_logging_comand, stdout, stderr))
 
         if return_binary is True or do_combine is True:
             return stdout
