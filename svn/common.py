@@ -285,6 +285,43 @@ class CommonClient(svn.common_base.CommonBase):
 
         self.run_command('export', cmd)
 
+    def blame(self, rel_filepath, 
+            revision_from=None, revision_to=None):
+        """
+        svn usage: blame [-r M:N] TARGET[@REV]
+        """
+
+        full_url_or_path = self.__url_or_path + "/" + rel_filepath
+        
+        args = []
+        if revision_from or revision_to:
+            if not revision_from:
+                revision_from = '1'
+
+            if not revision_to:
+                revision_to = 'HEAD'
+
+            args += ['-r', str(revision_from) + ':' + str(revision_to)]
+
+        result = self.run_command(
+            "blame", args + ["--xml", full_url_or_path], do_combine=True)
+        
+        root = xml.etree.ElementTree.fromstring(result)
+
+        for entry in root.findall("target/entry"):
+            commit = entry.find("commit")
+            author = entry.find("commit/author")
+            date_ = entry.find("commit/date")
+            if author is None or date_ is None:
+                continue
+            info = {
+                'line_number': int(entry.attrib['line-number']),
+                "commit_author": self.__element_text(author),
+                "commit_date": dateutil.parser.parse(date_.text),
+                "commit_revision": int(commit.attrib["revision"]),
+            }
+            yield info
+
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
