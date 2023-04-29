@@ -84,7 +84,9 @@ class LocalClient(svn.common.CommonClient):
             wcstatus = entry.find('wc-status')
             wcstatus_attr = wcstatus.attrib
 
-            change_type_raw = wcstatus_attr['item']
+            props = wcstatus_attr['props']
+            change_type_raw = 'conflicted' if props == 'conflicted' else \
+                'modified' if props == 'modified' else wcstatus_attr['item']
             change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
 
             # This will be absent if the file is "unversioned". It'll be "-1"
