@@ -13,7 +13,7 @@ def get_client(url_or_path, *args, **kwargs):
 
 def get_common_for_cwd():
     path = os.getcwd()
-    uri = 'file://{}'.format(path)
+    uri = 'file:///{}'.format(path)
 
     cc = svn.common.CommonClient(uri, svn.constants.LT_URL)
     return cc

@@ -1,3 +1,5 @@
+from __future__ import print_function          # PY3
+
 import os
 import unittest
 import shutil
@@ -7,7 +9,8 @@ import svn.common
 import svn.local
 import svn.utility
 import svn.test_support
-
+from svn.common import normpath2  # unify file paths for comparison (win)
+from svn.exception import SvnException
 
 class TestCommonClient(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -44,7 +47,7 @@ class TestCommonClient(unittest.TestCase):
 
             self.assertEquals(len(index), 1)
 
-            file_uri2 = 'file://{}/{}'.format(repo_path, 'committed_changed')
+            file_uri2 = 'file:///{}'.format(normpath2( os.path.join(repo_path, 'committed_changed')))
             self.assertEquals(index[file_uri2]['item'], 'modified')
 
     def test_diff__with_diff(self):
@@ -57,7 +60,7 @@ class TestCommonClient(unittest.TestCase):
                     1,
                     2)
 
-            filepath = os.path.join(working_path, 'committed_changed')
+            filepath = normpath2(os.path.join(working_path, 'committed_changed'))
 
             expected = {
                 filepath: {
@@ -87,14 +90,13 @@ class TestCommonClient(unittest.TestCase):
         with svn.test_support.temp_common() as (_, working_path, cc):
             svn.test_support.populate_bigger_file_changes1()
             rel_filepath2 = svn.test_support.populate_bigger_file_change1()
-
             actual = \
                 cc.diff(
                     2,
                     3)
-
-            filepath1 = os.path.join(working_path, 'added')
-            filepath2 = os.path.join(working_path, rel_filepath2)
+                    
+            filepath1 = normpath2(os.path.join(working_path, 'added'))
+            filepath2 = normpath2(os.path.join(working_path, rel_filepath2))
 
             expected = {
                 filepath1: None,
@@ -136,11 +138,11 @@ class TestCommonClient(unittest.TestCase):
                 info['entry_path'],
                 '.')
 
-            uri = 'file://{}'.format(repo_path)
+            uri = 'file:///{}'.format(repo_path)
 
             self.assertEqual(
-                info['repository_root'],
-                uri)
+                normpath2(info['repository_root']),
+                normpath2(uri))
 
             self.assertEqual(
                 info['entry#kind'],
@@ -219,3 +221,63 @@ class TestCommonClient(unittest.TestCase):
                     content = f.read()
 
                 self.assertEquals(content, "new data")
+
+class TestCommonProperties(unittest.TestCase):
+    def test_prop_commands(self):
+        with svn.test_support.temp_repo():
+            with svn.test_support.temp_checkout() as (wc, lc):
+                svn.test_support.populate_prop_files()
+    
+                lc.propset('svn:mime-type','image/jpeg', rel_path='foo.jpg')
+                lc.propset('owner','sally', rel_path='foo.bar')
+                lc.propset('svn:ignore','foo.bak') # set on directory level
+                
+                lc.commit('Committing properties')
+                lc.update()
+                
+                lc.propset('svn:keywords','Author Date Rev', rel_path='foo.bar')
+                
+                propdict = lc.propget('svn:mime-type', rel_path='foo.jpg')
+                path1 = normpath2(os.path.join(wc, 'foo.jpg'))
+                self.assertEquals(len(propdict), 1)
+                self.assertEquals(propdict[path1], 'image/jpeg')
+
+                propdict = lc.propget('svn:ignore', '.') # at directory level
+                path1 = normpath2(os.path.join(wc, '.'))
+                self.assertEquals(len(propdict), 1)
+                self.assertEquals(propdict[path1], 'foo.bak')
+                
+                propdict = lc.properties(rel_path='foo.bar')
+                self.assertEquals(len(propdict), 2)
+                self.assertEquals(propdict['owner'], 'sally')
+                self.assertEquals(propdict['svn:keywords'], 'Author Date Rev')
+                
+                lc.propdel('owner', rel_path='foo.bar')
+                
+                lc.commit('Committing after deleting property')
+                lc.update()
+
+                propdict = lc.properties(rel_path='foo.bar')
+                self.assertEquals(len(propdict), 1)
+                self.assertEquals(propdict['svn:keywords'], 'Author Date Rev')
+                
+                propdict = lc.properties(rel_path='foo.bar',revision=1)
+                self.assertEquals(len(propdict), 0)
+
+                propdict = lc.properties(rel_path='foo.bar',revision=2)
+                self.assertEquals(len(propdict), 1)
+                self.assertEquals(propdict['owner'], 'sally')
+
+                propdict = lc.propget('owner', rel_path='foo.bar',revision=2)
+                path1 = normpath2(os.path.join(wc, 'foo.bar'))
+                self.assertEquals(len(propdict), 1)
+                self.assertEquals(propdict[path1], 'sally')
+
+                # property was deleted before
+                with self.assertRaises(SvnException) as cx:
+                    lc.propget('owner', rel_path='foo.bar')              
+                """
+                # to get the multi-line error message
+                #exc = cx.exception
+                #print('\nMessage =\n',exc.message)
+                """

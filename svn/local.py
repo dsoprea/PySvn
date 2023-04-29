@@ -94,7 +94,7 @@ class LocalClient(svn.common.CommonClient):
                 revision = int(revision)
 
             yield _STATUS_ENTRY(
-                name=name,
+                name=svn.common.normpath2(name),
                 type_raw_name=change_type_raw,
                 type=change_type,
                 revision=revision

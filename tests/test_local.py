@@ -1,6 +1,7 @@
 import os
 import unittest
 
+import svn.common
 import svn.constants
 import svn.test_support
 
@@ -52,12 +53,13 @@ class TestLocalClient(unittest.TestCase):
                 status_all = list(status_all)
 
                 status_index = {
-                    s.name: s
+                    svn.common.normpath2(s.name): s
                     for s
                     in status_all
                 }
 
-                filepath = os.path.join(wc_path, 'new_file')
+                filepath = svn.common.normpath2(os.path.join(wc_path, 'new_file'))
+                
                 status = status_index[filepath]
 
                 self.assertEquals(status.type, svn.constants.ST_DELETED)
