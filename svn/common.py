@@ -242,10 +242,6 @@ class CommonClient(svn.common_base.CommonBase):
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(result)
-        named_fields = ['date', 'msg', 'revision', 'author', 'changelist']
-        c = collections.namedtuple(
-            'LogEntry',
-            named_fields)
 
         # Merge history can create nested log entries, so use iter instead of findall
         for e in root.iter('logentry'):
@@ -266,13 +262,16 @@ class CommonClient(svn.common_base.CommonBase):
             if changelist is True:
                 cl = []
                 for ch in e.findall('paths/path'):
-                    cl.append((ch.attrib['action'], ch.text))
+                    # namedtuple fields cannot have hyphens, so replace with underscores
+                    attribs = svn.constants.ChangelistEntryDefaults.copy()
+                    attribs.update({key.replace('-', '_'): val for key, val in ch.attrib.items()})
+                    cl.append(svn.constants.ChangelistEntry(path=ch.text, **attribs))
 
                 log_entry['changelist'] = cl
             else:
                 log_entry['changelist'] = None
 
-            yield c(**log_entry)
+            yield svn.constants.LogEntry(**log_entry)
 
     def export(self, to_path, revision=None, force=False):
         cmd = []
