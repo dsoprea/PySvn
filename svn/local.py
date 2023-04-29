@@ -58,11 +58,40 @@ class LocalClient(svn.common.CommonClient):
             cmd,
             wd=self.path)
 
-    def cleanup(self):
-        self.run_command(
-            'cleanup',
-            [],
-            wd=self.path)
+    def cleanup(self, remove_unversioned=False, remove_ignored=False):
+        if(remove_unversioned):
+            for file in self.status():
+                if(file.type == svn.constants.ST_UNVERSIONED):
+                    # remove folders/files manually because parameter --remove-unversioned is not available in svn before version 1.9
+                    self.__remove_recursively(os.path.abspath(file.name))
+
+        if(remove_ignored):
+            for file in self.status():
+                if(file.type == svn.constants.ST_IGNORED):
+                    # remove folders/files manually because parameter --remove-ignored is not available in svn before version 1.9
+                    self.__remove_recursively(os.path.abspath(file.name)) 
+
+        if((remove_unversioned and remove_ignored) == False):
+            # remove write locks and so on only if remove_unversioned and remove_ignored are not set to achieve the same behaviour as the svn clients in version 1.9 and above
+            self.run_command(
+                'cleanup',
+                [],
+                wd=self.path)
+
+    def __remove_recursively(self, path):
+        # Remove files from directory
+        if not os.path.isdir(path):
+            os.remove(path)
+            return # recursion anchor
+        # Remove files and folders from subdirectory
+        files=os.listdir(path)
+        for x in files:
+            fullpath=os.path.join(path, x)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath) # remove files from subdirectory
+            elif os.path.isdir(fullpath):
+                self.__remove_recursively(fullpath) # remove folders from subdirectory recursively
+        os.rmdir(path) # remove directory as soon as it is empty
 
     def status(self, rel_path=None):
         path = self.path
@@ -71,7 +100,7 @@ class LocalClient(svn.common.CommonClient):
 
         raw = self.run_command(
             'status',
-            ['--xml', path],
+            ['--no-ignore', '--xml', path],
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(raw)
@@ -116,3 +145,20 @@ class LocalClient(svn.common.CommonClient):
         self.run_command(
             'rm',
             args)
+
+    def revert(self, rel_filepaths=["."], depth="empty"):
+        cmd = []
+        if(depth in (
+                    "empty", # only the target itself
+                     "files", # the target and any immediate file children thereof
+                     "immediates", # the target and any immediate children thereof
+                     "infinity" # the target and all of its descendants — full recursion
+                     )):
+            cmd += ["--depth", depth]
+            
+        cmd += rel_filepaths
+        self.run_command(
+            'revert',
+            cmd,
+            wd=self.path
+        )
