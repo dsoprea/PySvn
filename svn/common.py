@@ -182,7 +182,7 @@ class CommonClient(svn.common_base.CommonBase):
     def log_default(self, timestamp_from_dt=None, timestamp_to_dt=None,
                     limit=None, rel_filepath=None, stop_on_copy=False,
                     revision_from=None, revision_to=None, changelist=False,
-                    use_merge_history=False):
+                    use_merge_history=False, search=None):
         """Allow for the most-likely kind of log listing: the complete list,
         a FROM and TO timestamp, a FROM timestamp only, or a quantity limit.
         """
@@ -229,6 +229,9 @@ class CommonClient(svn.common_base.CommonBase):
 
         if stop_on_copy is True:
             args += ['--stop-on-copy']
+
+        if search is not None:
+            args += ['--search', search]
 
         if use_merge_history is True:
             args += ['--use-merge-history']

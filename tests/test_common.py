@@ -178,6 +178,17 @@ class TestCommonClient(unittest.TestCase):
             self.assertEquals(l.revision, 1)
             self.assertEquals(l.msg, 'Initial commit.')
 
+    def test_search(self):
+        with svn.test_support.temp_common() as (_, _, cc):
+            svn.test_support.populate_bigger_file_changes1()
+            svn.test_support.populate_bigger_file_change1()
+            actual = \
+                cc.log_default(search="Change file", revision_from=1, revision_to=2)
+            self.assertEqual(next(actual).revision, 2)
+            actual = \
+                cc.log_default(search="Initial", revision_from=1, revision_to=2)
+            self.assertEqual(next(actual).revision, 1)
+
     def test_cat(self):
         with svn.test_support.temp_common() as (_, _, cc):
             svn.test_support.populate_bigger_file_changes1()
