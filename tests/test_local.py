@@ -87,3 +87,10 @@ class TestLocalClient(unittest.TestCase):
         with svn.test_support.temp_repo():
             with svn.test_support.temp_checkout() as (_, lc):
                 lc.cleanup()
+
+    def test_lock(self):
+        with svn.test_support.temp_repo():
+            with svn.test_support.temp_checkout() as (_, lc):
+                svn.test_support.populate_bigger_file_changes1()
+                lc.lock(['committed_unchanged'])
+                lc.unlock(['committed_unchanged'])
