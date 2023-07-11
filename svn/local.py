@@ -71,12 +71,12 @@ class LocalClient(svn.common.CommonClient):
 
         raw = self.run_command(
             'status',
-            ['--xml', path],
+            ['--xml', path, '-v'],
             do_combine=True)
 
         root = xml.etree.ElementTree.fromstring(raw)
 
-        list_ = root.findall('target/entry')
+        list_ = root.findall('target/entry') + root.findall('changelist/entry')
         for entry in list_:
             entry_attr = entry.attrib
             name = entry_attr['path']
