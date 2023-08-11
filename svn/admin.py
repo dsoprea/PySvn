@@ -15,7 +15,7 @@ class Admin(svn.common_base.CommonBase):
         self.__env = env
         self.__svnadmin_filepath = svnadmin_filepath
 
-    def create(self, path, svnadmin_filepath='svnadmin'):
+    def create(self, path):
         return self.__run_command('create', [path], do_combine=True)
 
     def __run_command(self, subcommand, args, **kwargs):
