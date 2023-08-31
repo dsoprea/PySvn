@@ -64,7 +64,7 @@ class LocalClient(svn.common.CommonClient):
             [],
             wd=self.path)
 
-    def status(self, rel_path=None):
+    def status(self, rel_path=None, include_changelists=False):
         path = self.path
         if rel_path is not None:
             path += '/' + rel_path
@@ -77,6 +77,8 @@ class LocalClient(svn.common.CommonClient):
         root = xml.etree.ElementTree.fromstring(raw)
 
         list_ = root.findall('target/entry')
+        if include_changelists is True:
+            list_ += root.findall('changelist/entry')
         for entry in list_:
             entry_attr = entry.attrib
             name = entry_attr['path']

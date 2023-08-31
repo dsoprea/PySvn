@@ -1,14 +1,13 @@
 import collections
 import logging
 import os
-import subprocess
 import xml.etree.ElementTree
 
 import dateutil.parser
 
+import svn.common_base
 import svn.constants
 import svn.exception
-import svn.common_base
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,10 +36,10 @@ class CommonClient(svn.common_base.CommonBase):
         self.__type = type_
 
     def run_command(self, subcommand, args, **kwargs):
-        cmd = [self.__svn_filepath, '--non-interactive']
+        cmd = [self.__svn_filepath]
 
         if self.__trust_cert:
-            cmd += ['--trust-server-cert']
+            cmd += ['--trust-server-cert', '--non-interactive']
 
         if self.__username is not None and self.__password is not None:
             cmd += ['--username', self.__username]
@@ -284,6 +283,45 @@ class CommonClient(svn.common_base.CommonBase):
         cmd.append('--force') if force else None
 
         self.run_command('export', cmd)
+
+    def status(self, rel_path=None, include_changelists=False):
+        full_url_or_path = self.__url_or_path
+        if rel_path is not None:
+            full_url_or_path += '/' + rel_path
+
+        raw = self.run_command(
+            'status',
+            ['--xml', full_url_or_path],
+            do_combine=True)
+
+        root = xml.etree.ElementTree.fromstring(raw)
+
+        list_ = root.findall('target/entry')
+        if include_changelists is True:
+            list_ += root.findall('changelist/entry')
+
+        for entry in list_:
+            entry_attr = entry.attrib
+            name = entry_attr['path']
+
+            wcstatus = entry.find('wc-status')
+            wcstatus_attr = wcstatus.attrib
+
+            change_type_raw = wcstatus_attr['item']
+            change_type = svn.constants.STATUS_TYPE_LOOKUP[change_type_raw]
+
+            # This will be absent if the file is "unversioned". It'll be "-1" 
+            # if added but not committed.
+            revision = wcstatus_attr.get('revision')
+            if revision is not None:
+                revision = int(revision)
+
+            yield _STATUS_ENTRY(
+                name=name,
+                type_raw_name=change_type_raw,
+                type=change_type,
+                revision=revision
+            )
 
     def list(self, extended=False, rel_path=None):
         full_url_or_path = self.__url_or_path
