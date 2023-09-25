@@ -29,29 +29,54 @@ class LocalClient(svn.common.CommonClient):
     def __repr__(self):
         return '<SVN(LOCAL) %s>' % self.path
 
-    def add(self, rel_path, do_include_parents=False):
+    def add(self, rel_path, do_include_parents=False, depth=None):
         args = [rel_path]
 
-        if do_include_parents is True:
+        if do_include_parents:
             args.append('--parents')
+        if depth:
+            args += svn.common.get_depth_options(depth)
 
         self.run_command(
             'add',
             args,
             wd=self.path)
 
-    def commit(self, message, rel_filepaths=[]):
-        args = ['-m', message] + rel_filepaths
+    def commit(self, message, rel_filepaths=None, depth=None, include_ext=False):
+        args = ['-m', message]
+        if depth:
+            args += svn.common.get_depth_options(depth)
+        if include_ext:
+            args += ["--include-externals"]
+        if rel_filepaths:
+            args += rel_filepaths
 
         output = self.run_command(
             'commit',
             args,
             wd=self.path)
 
-    def update(self, rel_filepaths=[], revision=None):
+    def update(
+        self,
+        rel_filepaths=[],
+        revision=None,
+        force=False,
+        depth=None,
+        set_depth=None,
+        ignore_ext=False,
+    ):
         cmd = []
         if revision is not None:
-            cmd += ['-r', str(revision)]
+            cmd += ["-r", str(revision)]
+        if force:
+            cmd += ["--force"]
+        if depth:
+            cmd += svn.common.get_depth_options(depth)
+        if set_depth:
+            cmd += svn.common.get_depth_options(set_depth, is_set_depth=True)
+        if ignore_ext:
+            cmd += ["--ignore-externals"]
+
         cmd += rel_filepaths
         self.run_command(
             'update',

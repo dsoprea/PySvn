@@ -19,6 +19,20 @@ _HUNK_HEADER_RIGHT_PREFIX = '+++ '
 _HUNK_HEADER_LINE_NUMBERS_PREFIX = '@@ '
 
 
+def get_depth_options(depth, is_set_depth=False):
+    """Get options for depth and check (is_set_depth=True for --set-depth)"""
+    depth_values = {"empty", "files", "immediates", "infinity"}
+    if is_set_depth:
+        depth_values = depth_values.union({"exclude"})
+
+    if depth not in depth_values:
+        raise svn.exception.SvnException(
+            "Invalid depth '{d}' (values allowed: {v})!".format(d=depth, v=depth_values)
+        )
+
+    return ["--set-depth" if is_set_depth else "--depth", depth]
+
+
 class CommonClient(svn.common_base.CommonBase):
     def __init__(self, url_or_path, type_, username=None, password=None,
                  svn_filepath='svn', trust_cert=None, env={}, *args, **kwargs):
@@ -61,7 +75,7 @@ class CommonClient(svn.common_base.CommonBase):
 
         return None
 
-    def info(self, rel_path=None, revision=None):
+    def info(self, rel_path=None, revision=None, include_ext=False):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
@@ -70,6 +84,8 @@ class CommonClient(svn.common_base.CommonBase):
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
         cmd += ['--xml', full_url_or_path]
+        if include_ext:
+            cmd += ["--include-externals"]
 
         result = self.run_command(
             'info',
@@ -79,7 +95,8 @@ class CommonClient(svn.common_base.CommonBase):
         root = xml.etree.ElementTree.fromstring(result)
 
         entry_attr = root.find('entry').attrib
-        commit_attr = root.find('entry/commit').attrib
+        commit_tag = root.find('entry/commit')
+        commit_attr = commit_tag.attrib if commit_tag else None
 
         relative_url = root.find('entry/relative-url')
         author = root.find('entry/commit/author')
@@ -97,20 +114,22 @@ class CommonClient(svn.common_base.CommonBase):
 
             'entry#kind': entry_attr['kind'],
             'entry#path': entry_attr['path'],
-            'entry#revision': int(entry_attr['revision']),
 
             'repository/root': root.find('entry/repository/root').text,
             'repository/uuid': root.find('entry/repository/uuid').text,
 
             'wc-info/wcroot-abspath': self.__element_text(wcroot_abspath),
             'wc-info/schedule': self.__element_text(wcinfo_schedule),
-            'wc-info/depth': self.__element_text(wcinfo_depth),
-            'commit/author': self.__element_text(author),
-
-            'commit/date': dateutil.parser.parse(
-                root.find('entry/commit/date').text),
-            'commit#revision': int(commit_attr['revision']),
+            'wc-info/depth': self.__element_text(wcinfo_depth)
         }
+        if commit_attr:
+            info.update({
+                'entry#revision': int(entry_attr['revision']),
+                'commit/author': self.__element_text(author),
+                'commit/date': dateutil.parser.parse(
+                    root.find('entry/commit/date').text),
+                'commit#revision': int(commit_attr['revision']),
+            })
 
         # Set some more intuitive keys, because no one likes dealing with
         # symbols. However, we retain the old ones to maintain backwards-
@@ -121,15 +140,17 @@ class CommonClient(svn.common_base.CommonBase):
 
         info['entry_kind'] = info['entry#kind']
         info['entry_path'] = info['entry#path']
-        info['entry_revision'] = info['entry#revision']
         info['repository_root'] = info['repository/root']
         info['repository_uuid'] = info['repository/uuid']
         info['wcinfo_wcroot_abspath'] = info['wc-info/wcroot-abspath']
         info['wcinfo_schedule'] = info['wc-info/schedule']
         info['wcinfo_depth'] = info['wc-info/depth']
-        info['commit_author'] = info['commit/author']
-        info['commit_date'] = info['commit/date']
-        info['commit_revision'] = info['commit#revision']
+
+        if commit_attr:
+            info['entry_revision'] = info['entry#revision']
+            info['commit_author'] = info['commit/author']
+            info['commit_date'] = info['commit/date']
+            info['commit_revision'] = info['commit#revision']
 
         return info
 
@@ -285,15 +306,19 @@ class CommonClient(svn.common_base.CommonBase):
 
         self.run_command('export', cmd)
 
-    def list(self, extended=False, rel_path=None):
+    def list(self, extended=False, rel_path=None, depth=None, include_ext=False):
         full_url_or_path = self.__url_or_path
         if rel_path is not None:
             full_url_or_path += '/' + rel_path
 
+        cmd = [full_url_or_path]
+        if depth:
+            cmd += get_depth_options(depth)
+        if include_ext:
+            cmd += ["--include-externals"]
+
         if extended is False:
-            for line in self.run_command(
-                    'ls',
-                    [full_url_or_path]):
+            for line in self.run_command('ls', cmd):
                 line = line.strip()
                 if line:
                     yield line
@@ -301,7 +326,7 @@ class CommonClient(svn.common_base.CommonBase):
         else:
             raw = self.run_command(
                 'ls',
-                ['--xml', full_url_or_path],
+                ['--xml'] + cmd,
                 do_combine=True)
 
             root = xml.etree.ElementTree.fromstring(raw)

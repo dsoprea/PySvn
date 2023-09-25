@@ -10,10 +10,16 @@ class RemoteClient(svn.common.CommonClient):
             svn.constants.LT_URL,
             *args, **kwargs)
 
-    def checkout(self, path, revision=None):
+    def checkout(self, path, revision=None, force=False, depth=None, ignore_ext=False):
         cmd = []
         if revision is not None:
             cmd += ['-r', str(revision)]
+        if force:
+            cmd += ["--force"]
+        if depth:
+            cmd += svn.common.get_depth_options(depth)
+        if ignore_ext:
+            cmd += ["--ignore-externals"]
 
         cmd += [self.url, path]
 
